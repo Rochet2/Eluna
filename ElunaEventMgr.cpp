@@ -125,3 +125,24 @@ void EventMgr::AddGlobalEvent(int funcRef, uint32 delay, uint32 repeats)
 {
     globalProcessor.AddEvent(funcRef, delay, repeats);
 }
+
+void Eluna::OnTimedEvent(int funcRef, uint32 delay, uint32 calls, WorldObject* obj)
+{
+    LOCK_ELUNA;
+    ASSERT(!event_level);
+
+    // Get function
+    lua_rawgeti(L, LUA_REGISTRYINDEX, funcRef);
+
+    // Push parameters
+    Push(L, funcRef);
+    Push(L, delay);
+    Push(L, calls);
+    Push(L, obj);
+
+    // Call function
+    ExecuteCall(4, 0);
+
+    ASSERT(!event_level);
+    InvalidateObjects();
+}

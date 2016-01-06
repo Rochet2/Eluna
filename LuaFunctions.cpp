@@ -16,6 +16,7 @@ extern "C"
 #include "ElunaTemplate.h"
 #include "ElunaUtility.h"
 #include "lmarshal.h"
+#include "Hooks.h"
 
 // Method includes
 #include "GlobalMethods.h"
@@ -42,36 +43,20 @@ ElunaFunction::ElunaRegister GlobalMethods[] =
 {
     // Hooks
     { ENV_BOTH, "RegisterServerEvent", &LuaGlobalFunctions::RegisterServerEvent },
-    { ENV_BOTH, "RegisterPlayerEvent", &LuaGlobalFunctions::RegisterPlayerEvent },
-    { ENV_BOTH, "RegisterGuildEvent", &LuaGlobalFunctions::RegisterGuildEvent },
-    { ENV_BOTH, "RegisterGroupEvent", &LuaGlobalFunctions::RegisterGroupEvent },
     { ENV_BOTH, "RegisterCreatureEvent", &LuaGlobalFunctions::RegisterCreatureEvent },
-    { ENV_BOTH, "RegisterUniqueCreatureEvent", &LuaGlobalFunctions::RegisterUniqueCreatureEvent },
-    { ENV_BOTH, "RegisterCreatureGossipEvent", &LuaGlobalFunctions::RegisterCreatureGossipEvent },
+    { ENV_BOTH, "RegisterCreatureGuidEvent", &LuaGlobalFunctions::RegisterCreatureGuidEvent },
     { ENV_BOTH, "RegisterGameObjectEvent", &LuaGlobalFunctions::RegisterGameObjectEvent },
-    { ENV_BOTH, "RegisterGameObjectGossipEvent", &LuaGlobalFunctions::RegisterGameObjectGossipEvent },
     { ENV_BOTH, "RegisterItemEvent", &LuaGlobalFunctions::RegisterItemEvent },
-    { ENV_BOTH, "RegisterItemGossipEvent", &LuaGlobalFunctions::RegisterItemGossipEvent },
     { ENV_BOTH, "RegisterPlayerGossipEvent", &LuaGlobalFunctions::RegisterPlayerGossipEvent },
-    { ENV_BOTH, "RegisterBGEvent", &LuaGlobalFunctions::RegisterBGEvent },
     { ENV_BOTH, "RegisterMapEvent", &LuaGlobalFunctions::RegisterMapEvent },
-    { ENV_BOTH, "RegisterInstanceEvent", &LuaGlobalFunctions::RegisterInstanceEvent },
 
-    { ENV_BOTH, "ClearBattleGroundEvents", &LuaGlobalFunctions::ClearBattleGroundEvents },
     { ENV_BOTH, "ClearCreatureEvents", &LuaGlobalFunctions::ClearCreatureEvents },
-    { ENV_BOTH, "ClearUniqueCreatureEvents", &LuaGlobalFunctions::ClearUniqueCreatureEvents },
-    { ENV_BOTH, "ClearCreatureGossipEvents", &LuaGlobalFunctions::ClearCreatureGossipEvents },
+    { ENV_BOTH, "ClearCreatureGuidEvents", &LuaGlobalFunctions::ClearCreatureGuidEvents },
     { ENV_BOTH, "ClearGameObjectEvents", &LuaGlobalFunctions::ClearGameObjectEvents },
-    { ENV_BOTH, "ClearGameObjectGossipEvents", &LuaGlobalFunctions::ClearGameObjectGossipEvents },
-    { ENV_BOTH, "ClearGroupEvents", &LuaGlobalFunctions::ClearGroupEvents },
-    { ENV_BOTH, "ClearGuildEvents", &LuaGlobalFunctions::ClearGuildEvents },
     { ENV_BOTH, "ClearItemEvents", &LuaGlobalFunctions::ClearItemEvents },
-    { ENV_BOTH, "ClearItemGossipEvents", &LuaGlobalFunctions::ClearItemGossipEvents },
-    { ENV_BOTH, "ClearPlayerEvents", &LuaGlobalFunctions::ClearPlayerEvents },
     { ENV_BOTH, "ClearPlayerGossipEvents", &LuaGlobalFunctions::ClearPlayerGossipEvents },
     { ENV_BOTH, "ClearServerEvents", &LuaGlobalFunctions::ClearServerEvents },
     { ENV_BOTH, "ClearMapEvents", &LuaGlobalFunctions::ClearMapEvents },
-    { ENV_BOTH, "ClearInstanceEvents", &LuaGlobalFunctions::ClearInstanceEvents },
 
     // Getters
     { ENV_BOTH, "GetMap", &LuaGlobalFunctions::GetMap },
@@ -1224,7 +1209,6 @@ ElunaRegister<Corpse> CorpseMethods[] =
     { ENV_BOTH, "GetType", &LuaCorpse::GetType },
     { ENV_BOTH, "ResetGhostTime", &LuaCorpse::ResetGhostTime },
     { ENV_BOTH, "SaveToDB", &LuaCorpse::SaveToDB },
-    { ENV_BOTH, "DeleteBonesFromWorld", &LuaCorpse::DeleteBonesFromWorld },
 
     { ENV_NONE, nullptr, nullptr }
 };

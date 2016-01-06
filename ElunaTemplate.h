@@ -16,15 +16,7 @@ extern "C"
 #include "LuaEngine.h"
 #include "ElunaUtility.h"
 #include "SharedDefines.h"
-
-enum ElunaEnvironments
-{
-    ENV_NONE,
-    ENV_MAP,    // For current map only
-    ENV_WORLD,  // For world state only
-    ENV_BOTH,   // For world and map
-    ENV_MAX
-};
+#include "Hooks.h"
 
 class ElunaFunction
 {
@@ -64,19 +56,8 @@ public:
 
         for (; methodTable && methodTable->name && methodTable->mfunc; ++methodTable)
         {
-            if (methodTable->env >= ENV_MAX || methodTable->env < ENV_NONE)
-            {
-                ASSERT(false);
-            }
-            else if (methodTable->env == ENV_NONE)
+            if (!(methodTable->env & E->env))
                 continue;
-            else if (methodTable->env != ENV_BOTH)
-            {
-                if (!E->owner && methodTable->env == ENV_MAP)
-                    continue;
-                else if (E->owner && methodTable->env == ENV_WORLD)
-                    continue;
-            }
             lua_pushstring(E->L, methodTable->name);
             lua_pushlightuserdata(E->L, (void*)methodTable);
             lua_pushcclosure(E->L, thunk, 1);
@@ -90,10 +71,8 @@ public:
 class ElunaObject
 {
 public:
-    ElunaObject(void* obj, bool manageMemory) : _isvalid(false), _invalidate(!manageMemory), object(obj)
-    {
-        SetValid(true);
-    }
+    template <typename T>
+    ElunaObject(T* obj, bool manageMemory);
 
     ~ElunaObject()
     {
@@ -105,6 +84,8 @@ public:
     bool IsValid() const { return _isvalid; }
     // Returns whether the object can be invalidated or not
     bool CanInvalidate() const { return _invalidate; }
+    // Returns pointer to the wrapped object's type name
+    const char* GetTypeName() const { return type_name; }
 
     // Sets the object pointer that is wrapped
     void SetObj(void* obj)
@@ -135,6 +116,7 @@ private:
     bool _isvalid;
     bool _invalidate;
     void* object;
+    const char* type_name;
 };
 
 template<typename T>
@@ -224,19 +206,8 @@ public:
 
         for (; methodTable && methodTable->name && methodTable->mfunc; ++methodTable)
         {
-            if (methodTable->env >= ENV_MAX || methodTable->env < ENV_NONE)
-            {
-                ASSERT(false);
-            }
-            else if (methodTable->env == ENV_NONE)
+            if (!(methodTable->env & E->env))
                 continue;
-            else if (methodTable->env != ENV_BOTH)
-            {
-                if (!E->owner && methodTable->env == ENV_MAP)
-                    continue;
-                else if (E->owner && methodTable->env == ENV_WORLD)
-                    continue;
-            }
             lua_pushstring(E->L, methodTable->name);
             lua_pushlightuserdata(E->L, (void*)methodTable);
             lua_pushcclosure(E->L, CallMethod, 1);
@@ -258,19 +229,8 @@ public:
 
         for (; methodTable && methodTable->name && methodTable->mfunc; ++methodTable)
         {
-            if (methodTable->env >= ENV_MAX || methodTable->env < ENV_NONE)
-            {
-                ASSERT(false);
-            }
-            else if (methodTable->env == ENV_NONE)
+            if (!(methodTable->env & E->env))
                 continue;
-            else if (methodTable->env != ENV_BOTH)
-            {
-                if (!E->owner && methodTable->env == ENV_MAP)
-                    continue;
-                else if (E->owner && methodTable->env == ENV_WORLD)
-                    continue;
-            }
             lua_pushstring(E->L, methodTable->name);
             lua_pushlightuserdata(E->L, (void*)methodTable);
             lua_pushcclosure(E->L, ElunaFunction::thunk, 1);
@@ -315,7 +275,7 @@ public:
             lua_pushnil(L);
             return 1;
         }
-        *ptrHold = new ElunaObject(obj_voidptr, manageMemory);
+        *ptrHold = new ElunaObject(const_cast<T*>(obj), manageMemory);
 
         // Set metatable for it
         lua_getglobal(L, tname);
@@ -432,5 +392,11 @@ public:
         return 1;
     }
 };
+
+template<typename T>
+inline ElunaObject::ElunaObject(T * obj, bool manageMemory) : _isvalid(false), _invalidate(!manageMemory), object(obj), type_name(ElunaTemplate<T>::tname)
+{
+    SetValid(true);
+}
 
 #endif

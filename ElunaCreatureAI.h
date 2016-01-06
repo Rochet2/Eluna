@@ -18,6 +18,8 @@ struct ScriptedAI;
 
 struct ElunaCreatureAI : ScriptedAI
 {
+    ElunaCreatureAI(Creature* creature) : ScriptedAI(creature) {}
+    /*
     // used to delay the spawn hook triggering on AI creation
     bool justSpawned;
     // used to delay movementinform hook (WP hook)
@@ -255,6 +257,7 @@ struct ElunaCreatureAI : ScriptedAI
 #ifndef TRINITY
 #undef me
 #endif
+    */
 };
 
 #endif

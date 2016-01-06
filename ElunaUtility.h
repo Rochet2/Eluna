@@ -21,15 +21,12 @@
 #include "Database/QueryResult.h"
 #endif
 
-// Some dummy includes containing BOOST_VERSION:
-// ObjectAccessor.h Config.h Log.h
-#ifdef BOOST_VERSION
-#define USING_BOOST
-#endif
-
 #ifdef USING_BOOST
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
+#else
+#include <ace/RW_Thread_Mutex.h>
+#include <ace/Guard_T.h>
 #endif
 
 #ifdef TRINITY
@@ -38,6 +35,20 @@ typedef QueryResult ElunaQuery;
 #define ELUNA_LOG_ERROR(...)    TC_LOG_ERROR("eluna", __VA_ARGS__);
 #define ELUNA_LOG_DEBUG(...)    TC_LOG_DEBUG("eluna", __VA_ARGS__);
 #define GET_GUID                GetGUID
+
+#define HIGHGUID_PLAYER         HighGuid::Player
+#define HIGHGUID_UNIT           HighGuid::Unit
+#define HIGHGUID_ITEM           HighGuid::Item
+#define HIGHGUID_GAMEOBJECT     HighGuid::GameObject
+#define HIGHGUID_PET            HighGuid::Pet
+#define HIGHGUID_TRANSPORT      HighGuid::Transport
+#define HIGHGUID_VEHICLE        HighGuid::Vehicle
+#define HIGHGUID_CONTAINER      HighGuid::Container
+#define HIGHGUID_DYNAMICOBJECT  HighGuid::DynamicObject
+#define HIGHGUID_CORPSE         HighGuid::Corpse
+#define HIGHGUID_MO_TRANSPORT   HighGuid::Mo_Transport
+#define HIGHGUID_INSTANCE       HighGuid::Instance
+#define HIGHGUID_GROUP          HighGuid::Group
 #else
 typedef QueryNamedResult ElunaQuery;
 #define ASSERT                  MANGOS_ASSERT
@@ -50,45 +61,6 @@ typedef QueryNamedResult ElunaQuery;
 #define GetTemplate             GetProto
 #endif
 
-#ifndef HIGHGUID_PLAYER
-#define HIGHGUID_PLAYER         HighGuid::Player
-#endif
-#ifndef HIGHGUID_UNIT
-#define HIGHGUID_UNIT           HighGuid::Unit
-#endif
-#ifndef HIGHGUID_GAMEOBJECT
-#define HIGHGUID_GAMEOBJECT     HighGuid::GameObject
-#endif
-#ifndef HIGHGUID_TRANSPORT
-#define HIGHGUID_TRANSPORT      HighGuid::Transport
-#endif
-#ifndef HIGHGUID_MO_TRANSPORT
-#define HIGHGUID_MO_TRANSPORT   HighGuid::Mo_Transport
-#endif
-#ifndef HIGHGUID_VEHICLE
-#define HIGHGUID_VEHICLE        HighGuid::Vehicle
-#endif
-#ifndef HIGHGUID_PET
-#define HIGHGUID_PET            HighGuid::Pet
-#endif
-#ifndef HIGHGUID_DYNAMICOBJECT
-#define HIGHGUID_DYNAMICOBJECT  HighGuid::DynamicObject
-#endif
-#ifndef HIGHGUID_CORPSE
-#define HIGHGUID_CORPSE         HighGuid::Corpse
-#endif
-#ifndef HIGHGUID_ITEM
-#define HIGHGUID_ITEM           HighGuid::Item
-#endif
-#ifndef HIGHGUID_INSTANCE
-#define HIGHGUID_INSTANCE       HighGuid::Instance
-#endif
-#ifndef HIGHGUID_GROUP
-#define HIGHGUID_GROUP          HighGuid::Group
-#endif
-#ifndef HIGHGUID_CONTAINER
-#define HIGHGUID_CONTAINER      HighGuid::Container
-#endif
 #ifndef MAKE_NEW_GUID
 #define MAKE_NEW_GUID(l, e, h)  ObjectGuid(h, e, l)
 #endif

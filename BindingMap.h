@@ -9,33 +9,38 @@
 
 #include <memory>
 #include "Common.h"
-#include "ElunaUtility.h"
+#include "ObjectGuid.h"
+#include <type_traits>
 
 extern "C"
 {
 #include "lua.h"
+#include "lualib.h"
 #include "lauxlib.h"
 };
 
+struct lua_State;
 
 /*
  * A set of bindings from keys of type `K` to Lua references.
  */
 template<typename K>
-class BindingMap : public ElunaUtil::RWLockable
+class BindingMap
 {
+public:
+    typedef uint64 BindGuid;
 private:
     lua_State* L;
-    uint64 maxBindingID;
+    BindGuid maxBindingID;
 
     struct Binding
     {
-        uint64 id;
+        BindGuid id;
         lua_State* L;
         uint32 remainingShots;
         int functionReference;
 
-        Binding(lua_State* L, uint64 id, int functionReference, uint32 remainingShots) :
+        Binding(lua_State* L, BindGuid id, int functionReference, uint32 remainingShots) :
             id(id),
             L(L),
             remainingShots(remainingShots),
@@ -61,7 +66,15 @@ private:
      * However, you must be careful not to store pointers to BindingLists
      *   that no longer exist (see `void Clear(const K& key)` implementation).
      */
-    std::unordered_map<uint64, BindingList*> id_lookup_table;
+    std::unordered_map<BindGuid, BindingList*> id_lookup_table;
+
+    static int cancelBinding(lua_State *L)
+    {
+        BindGuid bindid = Eluna::CHECKVAL<BindGuid>(L, lua_upvalueindex(1));
+        BindingMap<K>* bindmap = static_cast<BindingMap<K>*>(lua_touserdata(L, lua_upvalueindex(2)));
+        bindmap->Remove(bindid);
+        return 0;
+    }
 
 public:
     BindingMap(lua_State* L) :
@@ -71,18 +84,25 @@ public:
 
     /*
      * Insert a new binding from `key` to `ref`, which lasts for `shots`-many pushes.
+     * Pushes a cancel callback function to lua stack.
      *
      * If `shots` is 0, it will never automatically expire, but can still be
      *   removed with `Clear` or `Remove`.
      */
-    uint64 Insert(const K& key, int ref, uint32 shots)
+    BindGuid Insert(const K& key, int ref, uint32 shots)
     {
-        WriteGuard guard(GetLock());
+        BindGuid id = (++maxBindingID);
+        ASSERT(id != 0);
 
-        uint64 id = (++maxBindingID);
+        // save as a binding
         BindingList& list = bindings[key];
         list.push_back(std::unique_ptr<Binding>(new Binding(L, id, ref, shots)));
         id_lookup_table[id] = &list;
+
+        // create cancel callback and push it to stack
+        Eluna::Push(L, id);
+        lua_pushlightuserdata(L, this);
+        lua_pushcclosure(L, &cancelBinding, 2);
         return id;
     }
 
@@ -91,8 +111,6 @@ public:
      */
     void Clear(const K& key)
     {
-        WriteGuard guard(GetLock());
-
         if (bindings.empty())
             return;
 
@@ -117,8 +135,6 @@ public:
      */
     void Clear()
     {
-        WriteGuard guard(GetLock());
-
         if (bindings.empty())
             return;
 
@@ -131,10 +147,8 @@ public:
      *
      * If `id` in invalid, nothing is removed.
      */
-    void Remove(uint64 id)
+    void Remove(BindGuid id)
     {
-        WriteGuard guard(GetLock());
-
         auto iter = id_lookup_table.find(id);
         if (iter == id_lookup_table.end())
             return;
@@ -162,8 +176,6 @@ public:
      */
     bool HasBindingsFor(const K& key)
     {
-        ReadGuard guard(GetLock());
-
         if (bindings.empty())
             return false;
 
@@ -180,8 +192,6 @@ public:
      */
     void PushRefsFor(const K& key)
     {
-        WriteGuard guard(GetLock());
-
         if (bindings.empty())
             return;
 
@@ -211,55 +221,93 @@ public:
     }
 };
 
-
 /*
- * A `BindingMap` key type for simple event ID bindings
- *   (ServerEvents, GuildEvents, etc.).
- */
-template <typename T>
+* A `BindingMap` key type for an event (some global event)
+*   (event specific - event happens).
+*/
 struct EventKey
 {
-    T event_id;
+    std::string event_id;
 
-    EventKey(T event_id) :
+    EventKey(std::string const & event_id) :
         event_id(event_id)
     { }
 };
 
 /*
  * A `BindingMap` key type for event ID/Object entry ID bindings
- *   (CreatureEvents, GameObjectEvents, etc.).
+ *   (entry specific - event happens for some entry (creature, gameobject .. map)).
  */
-template <typename T>
 struct EntryKey
 {
-    T event_id;
+    std::string event_id;
+    BindingType type_id;
     uint32 entry;
 
-    EntryKey(T event_id, uint32 entry) :
+    EntryKey(std::string const & event_id, BindingType const & type_id, uint32 const & entry) :
         event_id(event_id),
+        type_id(type_id),
         entry(entry)
     { }
 };
 
 /*
- * A `BindingMap` key type for event ID/unique Object bindings
- *   (currently just CreatureEvents).
- */
-template <typename T>
-struct UniqueObjectKey
+* A `BindingMap` key type for event ID/unique Object bindings
+*   (guid specific - event happens for some guid (creature, gameobject ..)).
+*/
+struct GuidKey
 {
-    T event_id;
-    uint64 guid;
-    uint32 instance_id;
+#ifdef TRINITY
+    typedef ObjectGuid::LowType GuidType;
+#else
+    typedef uint32 GuidType;
+#endif
 
-    UniqueObjectKey(T event_id, uint64 guid, uint32 instance_id) :
+    std::string event_id;
+    BindingType type_id;
+    GuidType guid;
+
+    GuidKey(std::string const & event_id, BindingType const & type_id, GuidType const & guid) :
         event_id(event_id),
-        guid(guid),
-        instance_id(instance_id)
+        guid(guid)
     { }
 };
 
+class hash_helper
+{
+public:
+    typedef std::size_t result_type;
+
+    template <typename... T>
+    static inline result_type hash(T const &... t)
+    {
+        result_type seed = 0;
+        _hash_combine(seed, t...);
+        return seed;
+    }
+
+    template <typename T>
+    static inline result_type hash(T const & t)
+    {
+        // Possibly convert int to std::underlying_type or find another way
+        using Hasher = typename std::conditional< std::is_enum<T>::value, std::hash<int>, std::hash<T> >::type;
+        return Hasher()(t);
+    }
+
+private:
+    template <typename T>
+    static inline void _hash_combine(result_type& seed, T const & v)
+    {
+        seed ^= hash(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+
+    template <typename H, typename... T>
+    static inline void _hash_combine(result_type& seed, H const & h, T const &... t)
+    {
+        _hash_combine(seed, h);
+        _hash_combine(seed, t...);
+    }
+};
 
 /*
  * Implementations of various std functions on the above key types,
@@ -267,77 +315,77 @@ struct UniqueObjectKey
  */
 namespace std
 {
-    template<typename T>
-    struct equal_to < EventKey<T> >
+    template<>
+    struct equal_to < EventKey >
     {
-        bool operator()(EventKey<T> const& lhs, EventKey<T> const& rhs) const
+        bool operator()(EventKey const& lhs, EventKey const& rhs) const
         {
-            return lhs.event_id == rhs.event_id;
+            return
+                lhs.event_id == rhs.event_id;
         }
     };
 
-    template<typename T>
-    struct equal_to < EntryKey<T> >
+    template<>
+    struct equal_to < EntryKey >
     {
-        bool operator()(EntryKey<T> const& lhs, EntryKey<T> const& rhs) const
+        bool operator()(EntryKey const& lhs, EntryKey const& rhs) const
         {
-            return lhs.event_id == rhs.event_id
-                && lhs.entry == rhs.entry;
+            return
+                lhs.entry == rhs.entry &&
+                lhs.event_id == rhs.event_id &&
+                lhs.type_id == rhs.type_id;
         }
     };
 
-    template<typename T>
-    struct equal_to < UniqueObjectKey<T> >
+    template<>
+    struct equal_to < GuidKey >
     {
-        bool operator()(UniqueObjectKey<T> const& lhs, UniqueObjectKey<T> const& rhs) const
+        bool operator()(GuidKey const& lhs, GuidKey const& rhs) const
         {
-            return lhs.event_id == rhs.event_id
-                && lhs.guid == rhs.guid
-                && lhs.instance_id == rhs.instance_id;
+            return
+                lhs.guid == rhs.guid &&
+                lhs.event_id == rhs.event_id &&
+                lhs.type_id == rhs.type_id;
         }
     };
 
-    template<typename T>
-    struct hash < EventKey<T> >
+    template<>
+    struct hash < EventKey >
     {
-        typedef EventKey<T> argument_type;
-        typedef std::size_t result_type;
+        typedef EventKey argument_type;
 
-        result_type operator()(argument_type const& k) const
+        hash_helper::result_type operator()(argument_type const& k) const
         {
-            result_type const h1(std::hash<uint32>()(k.event_id));
-            return h1;
+            return hash_helper::hash(
+                k.event_id);
         }
     };
 
-    template<typename T>
-    struct hash < EntryKey<T> >
+    template<>
+    struct hash < EntryKey >
     {
-        typedef EntryKey<T> argument_type;
-        typedef std::size_t result_type;
+        typedef EntryKey argument_type;
 
-        result_type operator()(argument_type const& k) const
+        hash_helper::result_type operator()(argument_type const& k) const
         {
-            result_type const h1(std::hash<uint32>()(k.event_id));
-            result_type const h2(std::hash<uint32>()(k.entry));
-
-            return h1 ^ (h2 << 8); // `event_id` probably won't exceed 2^8.
+            return hash_helper::hash(
+                k.event_id,
+                k.type_id,
+                k.entry);
         }
     };
 
-    template<typename T>
-    struct hash < UniqueObjectKey<T> >
+    template<>
+    struct hash < GuidKey >
     {
-        typedef UniqueObjectKey<T> argument_type;
-        typedef std::size_t result_type;
+        typedef GuidKey argument_type;
 
-        result_type operator()(argument_type const& k) const
+        hash_helper::result_type operator()(argument_type const& k) const
         {
-            result_type const h1(std::hash<uint32>()(k.event_id));
-            result_type const h2(std::hash<uint32>()(k.instance_id));
-            result_type const h3(std::hash<uint64>()(k.guid));
-
-            return h1 ^ (h2 << 8) ^ (h3 << 24); // `instance_id` probably won't exceed 2^16.
+            return hash_helper::hash(
+                k.event_id,
+                k.type_id,
+                k.guid);
         }
     };
 }

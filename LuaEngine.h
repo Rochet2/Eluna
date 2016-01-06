@@ -27,6 +27,11 @@
 #include "World.h"
 #include "Hooks.h"
 #include "ElunaUtility.h"
+#include "BindingMap.h"
+
+#ifndef USING_BOOST
+#include <ace/Recursive_Thread_Mutex.h>
+#endif
 
 extern "C"
 {
@@ -107,9 +112,9 @@ class ElunaObject;
 template<typename T> class ElunaTemplate;
 
 template<typename K> class BindingMap;
-template<typename T> struct EventKey;
-template<typename T> struct EntryKey;
-template<typename T> struct UniqueObjectKey;
+struct EventKey;
+struct EntryKey;
+struct GuidKey;
 
 struct LuaScript
 {
@@ -255,7 +260,7 @@ private:
     }
 
 public:
-    static void ASSERT_MAIN_THREAD() { ASSERT(main_thread_id == std::this_thread::get_id()); }
+    static inline void ASSERT_MAIN_THREAD() { ASSERT(main_thread_id == std::this_thread::get_id()); }
 
     static Eluna* GEluna;
     static MsgQueue msgque;
@@ -264,29 +269,15 @@ public:
     EventMgr* eventMgr;
     TableMgr* tableMgr;
     Map* const owner;
+    ElunaEnvironments const env;
     lua_State* L;
     // State messaging channels and messages
     std::unordered_set<std::string> channels;
     std::vector< std::pair<std::string, std::string> > channelMessages;
 
-    BindingMap< EventKey<Hooks::ServerEvents> >*     ServerEventBindings;
-    BindingMap< EventKey<Hooks::PlayerEvents> >*     PlayerEventBindings;
-    BindingMap< EventKey<Hooks::GuildEvents> >*      GuildEventBindings;
-    BindingMap< EventKey<Hooks::GroupEvents> >*      GroupEventBindings;
-    BindingMap< EventKey<Hooks::VehicleEvents> >*    VehicleEventBindings;
-    BindingMap< EventKey<Hooks::BGEvents> >*         BGEventBindings;
-
-    BindingMap< EntryKey<Hooks::CreatureEvents> >*   CreatureEventBindings;
-    BindingMap< EntryKey<Hooks::GossipEvents> >*     CreatureGossipBindings;
-    BindingMap< EntryKey<Hooks::GameObjectEvents> >* GameObjectEventBindings;
-    BindingMap< EntryKey<Hooks::GossipEvents> >*     GameObjectGossipBindings;
-    BindingMap< EntryKey<Hooks::ItemEvents> >*       ItemEventBindings;
-    BindingMap< EntryKey<Hooks::GossipEvents> >*     ItemGossipBindings;
-    BindingMap< EntryKey<Hooks::GossipEvents> >*     PlayerGossipBindings;
-    BindingMap< EntryKey<Hooks::InstanceEvents> >*   MapEventBindings;
-    BindingMap< EntryKey<Hooks::InstanceEvents> >*   InstanceEventBindings;
-
-    BindingMap< UniqueObjectKey<Hooks::CreatureEvents> >*  CreatureUniqueBindings;
+    BindingMap< EventKey >* ServerEventBindings;
+    BindingMap< EntryKey >* EntryEventBindings;
+    BindingMap< GuidKey >*  GuidEventBindings;
 
     static void Initialize();
     static void Uninitialize();
@@ -373,7 +364,6 @@ public:
 
     void RunScripts();
     bool IsEnabled() const { return enabled; }
-    int Register(lua_State* L, uint8 reg, uint32 entry, uint64 guid, uint32 instanceId, uint32 event_id, int functionRef, uint32 shots);
 
     // Non-static pushes, to be used in hooks.
     // These just call the correct static version with the main thread's Lua state.

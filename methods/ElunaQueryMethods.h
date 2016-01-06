@@ -313,6 +313,11 @@ namespace LuaQuery
                     case MYSQL_TYPE_SHORT:
                     case MYSQL_TYPE_INT24:
                     case MYSQL_TYPE_LONG:
+                        Eluna::Push(L, strtol(str, nullptr, 0));
+                        break;
+                    case MYSQL_TYPE_LONGLONG:
+                        Eluna::Push(L, strtoll(str, nullptr, 0));
+                        break;
                     case MYSQL_TYPE_FLOAT:
                     case MYSQL_TYPE_DOUBLE:
                         Eluna::Push(L, strtod(str, nullptr));
