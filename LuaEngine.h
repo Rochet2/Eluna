@@ -29,10 +29,6 @@
 #include "ElunaUtility.h"
 #include "BindingMap.h"
 
-#ifndef USING_BOOST
-#include <ace/Recursive_Thread_Mutex.h>
-#endif
-
 extern "C"
 {
 #include "lua.h"
@@ -131,32 +127,32 @@ struct LuaScript
 
 class MsgQueue
 {
-public:
+private:
     typedef std::mutex LockType;
     typedef std::lock_guard<LockType> WriteGuard;
     typedef std::unordered_map < std::string, std::vector< std::string > > Queue;
 
+    Queue que;
+    LockType lock;
+
+public:
     void AddMsg(std::string const& channel, std::string const& message)
     {
-        WriteGuard guard(_msglock);
+        WriteGuard guard(lock);
         que[channel].push_back(message);
     }
 
-    Queue que;
-    LockType _msglock;
+    void GetQueueForRead(std::string const& channel, std::string const& message)
+    {
+        WriteGuard guard(lock);
+        que[channel].push_back(message);
+    }
 };
 
 class Eluna
 {
 public:
     typedef std::list<LuaScript> ScriptList;
-#ifdef TRINITY
-    typedef std::recursive_mutex LockType;
-    typedef std::lock_guard<LockType> Guard;
-#else
-    typedef ACE_Recursive_Thread_Mutex LockType;
-    typedef ACE_Guard<LockType> Guard;
-#endif
 
     class InstanceHolder
     {
@@ -188,7 +184,6 @@ public:
 private:
     static std::atomic<bool> reload;
     static std::atomic<bool> initialized;
-    static LockType lock;
 
     // Lua script locations
     static ScriptList lua_scripts;
@@ -211,6 +206,9 @@ private:
     std::unordered_map<uint32, int> instanceDataRefs;
     // Map from map ID -> Lua table ref
     std::unordered_map<uint32, int> continentDataRefs;
+
+    // WorldObject guid (map specific guid) -> Lua table ref
+    std::unordered_map<ObjectGuid, int> worldObjectDataRefs;
 
     // Prevent copy
     Eluna(Eluna const&);
@@ -282,7 +280,6 @@ public:
     static void Initialize();
     static void Uninitialize();
     // This function is used to make eluna reload
-    static LockType& GetLock() { return lock; };
     static void ReloadEluna() { reload = true; }
     static bool ShouldReload() { return reload; }
     static bool IsInitialized() { return initialized; }
@@ -338,6 +335,11 @@ public:
         return tableMgr;
     }
 
+    std::unordered_map<ObjectGuid, int>& GetDataRefs()
+    {
+        return worldObjectDataRefs;
+    }
+
     /*
      * Returns `true` if Eluna has instance data for `map`.
      */
@@ -364,6 +366,7 @@ public:
 
     void RunScripts();
     bool IsEnabled() const { return enabled; }
+    void RemoveWorldObjectData(WorldObject* obj);
 
     // Non-static pushes, to be used in hooks.
     // These just call the correct static version with the main thread's Lua state.

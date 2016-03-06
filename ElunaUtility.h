@@ -21,13 +21,12 @@
 #include "Database/QueryResult.h"
 #endif
 
-#ifdef USING_BOOST
-#include <boost/thread/locks.hpp>
-#include <boost/thread/shared_mutex.hpp>
-#else
-#include <ace/RW_Thread_Mutex.h>
-#include <ace/Guard_T.h>
-#endif
+extern "C"
+{
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+};
 
 #ifdef TRINITY
 typedef QueryResult ElunaQuery;
@@ -80,6 +79,7 @@ struct FactionTemplateEntry;
 
 namespace ElunaUtil
 {
+
     uint32 GetCurrTime();
 
     uint32 GetTimeDiff(uint32 oldMSTime);
@@ -122,35 +122,6 @@ namespace ElunaUtil
         uint16 const i_typeMask;
         uint32 const i_dead; // 0 both, 1 alive, 2 dead
         bool const i_nearest;
-    };
-
-    /*
-     * Usage:
-     * Inherit this class, then when needing lock, use
-     * ReadGuard guard(GetLock());
-     * or
-     * WriteGuard guard(GetLock());
-     *
-     * The lock is automatically released at end of scope
-     */
-    class RWLockable
-    {
-    public:
-
-#ifdef USING_BOOST
-        typedef boost::shared_mutex LockType;
-        typedef boost::shared_lock<LockType> ReadGuard;
-        typedef boost::unique_lock<LockType> WriteGuard;
-#else
-        typedef ACE_RW_Thread_Mutex LockType;
-        typedef ACE_Read_Guard<LockType> ReadGuard;
-        typedef ACE_Write_Guard<LockType> WriteGuard;
-#endif
-
-        LockType& GetLock() { return _lock; }
-
-    private:
-        LockType _lock;
     };
 
     /*

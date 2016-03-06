@@ -216,6 +216,7 @@ ElunaRegister<WorldObject> WorldObjectMethods[] =
     { ENV_MAP, "RegisterEvent", &LuaWorldObject::RegisterEvent },
     { ENV_MAP, "RemoveEventById", &LuaWorldObject::RemoveEventById },
     { ENV_MAP, "RemoveEvents", &LuaWorldObject::RemoveEvents },
+    { ENV_MAP, "GetDataTable", &LuaWorldObject::GetDataTable },
 
     { ENV_NONE, nullptr, nullptr },
 };
@@ -1110,9 +1111,11 @@ ElunaRegister<Vehicle> VehicleMethods[] =
 ElunaRegister<ElunaQuery> QueryMethods[] =
 {
     { ENV_BOTH, "NextRow", &LuaQuery::NextRow },                        // :NextRow() - Advances to next rown in the query. Returns true if there is a next row, otherwise false
+    { ENV_BOTH, "GetColumnNames", &LuaQuery::GetColumnNames },
     { ENV_BOTH, "GetColumnCount", &LuaQuery::GetColumnCount },          // :GetColumnCount() - Gets the column count of the query
     { ENV_BOTH, "GetRowCount", &LuaQuery::GetRowCount },                // :GetRowCount() - Gets the row count of the query
     { ENV_BOTH, "GetRow", &LuaQuery::GetRow },
+    { ENV_BOTH, "GetRows", &LuaQuery::GetRows },
 
     { ENV_BOTH, "GetBool", &LuaQuery::GetBool },                        // :GetBool(column) - returns a bool from a number column (for example tinyint)
     { ENV_BOTH, "GetUInt8", &LuaQuery::GetUInt8 },                      // :GetUInt8(column) - returns the value of an unsigned tinyint column

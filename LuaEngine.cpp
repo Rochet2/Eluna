@@ -16,6 +16,7 @@
 #include "ElunaCreatureAI.h"
 #include "ElunaInstanceAI.h"
 
+// Filesystem
 #ifdef USING_BOOST
 #include <boost/filesystem.hpp>
 #else
@@ -44,7 +45,6 @@ MsgQueue Eluna::msgque;
 std::thread::id const Eluna::main_thread_id(std::this_thread::get_id());
 std::atomic<bool> Eluna::reload(false);
 std::atomic<bool> Eluna::initialized(false);
-Eluna::LockType Eluna::lock;
 
 extern void RegisterFunctions(Eluna* E);
 
@@ -60,9 +60,9 @@ Eluna* Eluna::GetGEluna(const char* info)
         {
             ELUNA_LOG_ERROR("[Eluna]: Race condition accessing GEluna. Report to devs with this message and details about what you were doing");
         }
-        Eluna::ASSERT_MAIN_THREAD();
+        ASSERT_MAIN_THREAD();
     }
-    return Eluna::GEluna;
+    return GEluna;
 }
 
 void Eluna::Initialize()
@@ -626,6 +626,12 @@ bool Eluna::ExecuteCall(int params, int res)
 
     // Stack: [results]
     return true;
+}
+
+void Eluna::RemoveWorldObjectData(WorldObject* obj)
+{
+    worldObjectDataRefs.erase(obj->GetGUID());
+    GetEventMgr()->Delete(obj->GetGUID());
 }
 
 void Eluna::Push(lua_State* luastate)

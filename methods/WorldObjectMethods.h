@@ -803,17 +803,17 @@ namespace LuaWorldObject
     }
 
     /**
-     * Returns true if the given [WorldObject] or coordinates are in the [WorldObject]'s line of sight
-     *
-     * @proto isInLoS = (worldobject)
-     * @proto isInLoS = (x, y, z)
-     *
-     * @param [WorldObject] worldobject
-     * @param float x
-     * @param float y
-     * @param float z
-     * @return bool isInLoS
-     */
+    * Returns true if the given [WorldObject] or coordinates are in the [WorldObject]'s line of sight
+    *
+    * @proto isInLoS = (worldobject)
+    * @proto isInLoS = (x, y, z)
+    *
+    * @param [WorldObject] worldobject
+    * @param float x
+    * @param float y
+    * @param float z
+    * @return bool isInLoS
+    */
     int IsWithinLoS(lua_State* L, WorldObject* obj)
     {
         WorldObject* target = Eluna::CHECKOBJ<WorldObject>(L, 2, false);
@@ -828,6 +828,38 @@ namespace LuaWorldObject
             Eluna::Push(L, obj->IsWithinLOS(x, y, z));
         }
 
+        return 1;
+    }
+
+    /**
+    * Returns a lua table that is associated with this [WorldObject]
+    *
+    * The table can be used to store data for the lifetime of the object.
+    * The data is automatically destroyed with the object.
+    *
+    * When data is stored for a [Player], the data is destroyed when he moves to another map.
+    *
+    * @return table dataTable
+    */
+    int GetDataTable(lua_State* L, WorldObject* obj)
+    {
+        Eluna* E = Eluna::GetEluna(L);
+        auto refs = E->GetDataRefs();
+        auto it = refs.find(obj->GET_GUID());
+        if (it == refs.end())
+        {
+            lua_newtable(L);
+            lua_pushvalue(L, -1);
+            int ref = luaL_ref(L, LUA_REGISTRYINDEX);
+            if (ref == LUA_REFNIL)
+                lua_pop(L, 1);
+            else
+                refs[obj->GET_GUID()] = ref;
+        }
+        else
+        {
+            lua_rawgeti(L, LUA_REGISTRYINDEX, it->second);
+        }
         return 1;
     }
 };
