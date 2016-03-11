@@ -393,10 +393,25 @@ public:
     }
 };
 
+template<typename T> const char* ElunaTemplate<T>::tname = nullptr;
+template<typename T> bool ElunaTemplate<T>::manageMemory = false;
 template<typename T>
 inline ElunaObject::ElunaObject(T * obj, bool manageMemory) : _isvalid(false), _invalidate(!manageMemory), object(obj), type_name(ElunaTemplate<T>::tname)
 {
     SetValid(true);
 }
+
+#if (!defined(TBC) && !defined(CLASSIC))
+// fix compile error about accessing vehicle destructor
+template<> int ElunaTemplate<Vehicle>::CollectGarbage(lua_State* L)
+{
+    ASSERT(!manageMemory);
+
+    // Get object pointer (and check type, no error)
+    ElunaObject* obj = Eluna::CHECKOBJ<ElunaObject>(L, 1, false);
+    delete obj;
+    return 0;
+}
+#endif
 
 #endif

@@ -393,19 +393,6 @@ namespace LuaObject
     }
 
     /**
-     * Attempts to convert the [Object] to a [Corpse].
-     *
-     * If the [Object] is not a [Corpse], returns `nil`.
-     *
-     * @return [Corpse] corpse : the [Object] as a [Corpse], or `nil`
-     */
-    int ToCorpse(lua_State* L, Object* obj)
-    {
-        Eluna::Push(L, obj->ToCorpse());
-        return 1;
-    }
-
-    /**
      * Attempts to convert the [Object] to a [GameObject].
      *
      * If the [Object] is not a [GameObject], returns `nil`.

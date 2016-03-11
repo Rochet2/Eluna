@@ -1547,17 +1547,6 @@ namespace LuaPlayer
     }
 
     /**
-     * Returns the [Player]s [Corpse] object
-     *
-     * @return [Corpse] corpse
-     */
-    int GetCorpse(lua_State* L, Player* player)
-    {
-        Eluna::Push(L, player->GetCorpse());
-        return 1;
-    }
-
-    /**
      * Returns the [Player]s database locale index
      *
      * @return int localeIndex

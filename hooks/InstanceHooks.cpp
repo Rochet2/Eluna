@@ -10,7 +10,6 @@
 #include "BindingMap.h"
 #include "ElunaIncludes.h"
 #include "ElunaTemplate.h"
-#include "ElunaInstanceAI.h"
 
 
 void Eluna::OnInitialize(ElunaInstanceAI* ai)

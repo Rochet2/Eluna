@@ -35,9 +35,7 @@ extern "C"
 #include "SpellMethods.h"
 #include "QuestMethods.h"
 #include "MapMethods.h"
-#include "CorpseMethods.h"
 #include "VehicleMethods.h"
-#include "BattleGroundMethods.h"
 
 ElunaFunction::ElunaRegister GlobalMethods[] =
 {
@@ -167,7 +165,6 @@ ElunaRegister<Object> ObjectMethods[] =
     { ENV_BOTH, "ToUnit", &LuaObject::ToUnit },                         // :ToUnit()
     { ENV_BOTH, "ToCreature", &LuaObject::ToCreature },                 // :ToCreature()
     { ENV_BOTH, "ToPlayer", &LuaObject::ToPlayer },                     // :ToPlayer()
-    { ENV_BOTH, "ToCorpse", &LuaObject::ToCorpse },                     // :ToCorpse()
     { ENV_BOTH, "RemoveFlag", &LuaObject::RemoveFlag },                 // :RemoveFlag(index, flag)
 
     { ENV_NONE, nullptr, nullptr },
@@ -485,7 +482,6 @@ ElunaRegister<Player> PlayerMethods[] =
     // { "GetRecruiterId", &LuaPlayer::GetRecruiterId },                          // :GetRecruiterId() - Returns player's recruiter's ID
     { ENV_BOTH, "GetDbLocaleIndex", &LuaPlayer::GetDbLocaleIndex },                         // :GetDbLocaleIndex() - Returns locale index
     { ENV_BOTH, "GetDbcLocale", &LuaPlayer::GetDbcLocale },                                 // :GetDbcLocale() - Returns DBC locale
-    { ENV_BOTH, "GetCorpse", &LuaPlayer::GetCorpse },                                       // :GetCorpse() - Returns the player's corpse
     { ENV_BOTH, "GetGossipTextId", &LuaPlayer::GetGossipTextId },                           // :GetGossipTextId(worldObject) - Returns the WorldObject's gossip textId
     { ENV_BOTH, "GetQuestRewardStatus", &LuaPlayer::GetQuestRewardStatus },                 // :GetQuestRewardStatus(questId) - Returns the true/false of the quest reward status
 #ifndef CATA
@@ -1175,7 +1171,6 @@ ElunaRegister<Map> MapMethods[] =
     { ENV_BOTH, "GetName", &LuaMap::GetName },                          // :GetName() - Returns the map's name UNDOCUMENTED
     { ENV_BOTH, "GetDifficulty", &LuaMap::GetDifficulty },              // :GetDifficulty() - Returns the map's difficulty UNDOCUMENTED
     { ENV_BOTH, "GetInstanceId", &LuaMap::GetInstanceId },              // :GetInstanceId() - Returns the map's instance ID UNDOCUMENTED
-    { ENV_MAP,  "GetInstanceData", &LuaMap::GetInstanceData },
     { ENV_BOTH, "GetPlayers", &LuaMap::GetPlayers },
     { ENV_BOTH, "GetPlayerCount", &LuaMap::GetPlayerCount },            // :GetPlayerCount() - Returns the amount of players on map except GM's UNDOCUMENTED
     { ENV_BOTH, "GetMapId", &LuaMap::GetMapId },                        // :GetMapId() - Returns the map's ID UNDOCUMENTED
@@ -1198,68 +1193,8 @@ ElunaRegister<Map> MapMethods[] =
 #endif
     { ENV_BOTH, "IsRaid", &LuaMap::IsRaid },                            // :IsRaid() - Returns the true if the map is a raid map, else false UNDOCUMENTED
 
-    // Other
-    { ENV_BOTH, "SaveInstanceData", &LuaMap::SaveInstanceData },
-
     { ENV_NONE, nullptr, nullptr },
 };
-
-ElunaRegister<Corpse> CorpseMethods[] =
-{
-    { ENV_BOTH, "GetOwnerGUID", &LuaCorpse::GetOwnerGUID },
-    { ENV_BOTH, "GetGhostTime", &LuaCorpse::GetGhostTime },
-    { ENV_BOTH, "GetType", &LuaCorpse::GetType },
-    { ENV_BOTH, "ResetGhostTime", &LuaCorpse::ResetGhostTime },
-    { ENV_BOTH, "SaveToDB", &LuaCorpse::SaveToDB },
-
-    { ENV_NONE, nullptr, nullptr }
-};
-
-ElunaRegister<AuctionHouseEntry> AuctionMethods[] =
-{
-    { ENV_NONE, nullptr, nullptr }
-};
-
-ElunaRegister<BattleGround> BattleGroundMethods[] =
-{
-    // Getters
-    { ENV_BOTH, "GetName", &LuaBattleGround::GetName },
-    { ENV_BOTH, "GetAlivePlayersCountByTeam", &LuaBattleGround::GetAlivePlayersCountByTeam },
-    { ENV_BOTH, "GetMap", &LuaBattleGround::GetMap },
-    { ENV_BOTH, "GetBonusHonorFromKillCount", &LuaBattleGround::GetBonusHonorFromKillCount },
-    { ENV_BOTH, "GetBracketId", &LuaBattleGround::GetBracketId },
-    { ENV_BOTH, "GetEndTime", &LuaBattleGround::GetEndTime },
-    { ENV_BOTH, "GetFreeSlotsForTeam", &LuaBattleGround::GetFreeSlotsForTeam },
-    { ENV_BOTH, "GetInstanceId", &LuaBattleGround::GetInstanceId },
-    { ENV_BOTH, "GetMapId", &LuaBattleGround::GetMapId },
-    { ENV_BOTH, "GetTypeId", &LuaBattleGround::GetTypeId },
-    { ENV_BOTH, "GetMaxLevel", &LuaBattleGround::GetMaxLevel },
-    { ENV_BOTH, "GetMinLevel", &LuaBattleGround::GetMinLevel },
-    { ENV_BOTH, "GetMaxPlayers", &LuaBattleGround::GetMaxPlayers },
-    { ENV_BOTH, "GetMinPlayers", &LuaBattleGround::GetMinPlayers },
-    { ENV_BOTH, "GetMaxPlayersPerTeam", &LuaBattleGround::GetMaxPlayersPerTeam },
-    { ENV_BOTH, "GetMinPlayersPerTeam", &LuaBattleGround::GetMinPlayersPerTeam },
-    { ENV_BOTH, "GetWinner", &LuaBattleGround::GetWinner },
-    { ENV_BOTH, "GetStatus", &LuaBattleGround::GetStatus },
-
-    { ENV_NONE, nullptr, nullptr }
-};
-
-template<typename T> const char* ElunaTemplate<T>::tname = nullptr;
-template<typename T> bool ElunaTemplate<T>::manageMemory = false;
-
-#if (!defined(TBC) && !defined(CLASSIC))
-// fix compile error about accessing vehicle destructor
-template<> int ElunaTemplate<Vehicle>::CollectGarbage(lua_State* L)
-{
-    ASSERT(!manageMemory);
-
-    // Get object pointer (and check type, no error)
-    ElunaObject* obj = Eluna::CHECKOBJ<ElunaObject>(L, 1, false);
-    delete obj;
-    return 0;
-}
-#endif
 
 void RegisterFunctions(Eluna* E)
 {
@@ -1294,11 +1229,6 @@ void RegisterFunctions(Eluna* E)
     ElunaTemplate<GameObject>::SetMethods(E, WorldObjectMethods);
     ElunaTemplate<GameObject>::SetMethods(E, GameObjectMethods);
 
-    ElunaTemplate<Corpse>::Register(E, "Corpse");
-    ElunaTemplate<Corpse>::SetMethods(E, ObjectMethods);
-    ElunaTemplate<Corpse>::SetMethods(E, WorldObjectMethods);
-    ElunaTemplate<Corpse>::SetMethods(E, CorpseMethods);
-
     ElunaTemplate<Item>::Register(E, "Item");
     ElunaTemplate<Item>::SetMethods(E, ObjectMethods);
     ElunaTemplate<Item>::SetMethods(E, ItemMethods);
@@ -1327,12 +1257,6 @@ void RegisterFunctions(Eluna* E)
 
     ElunaTemplate<Map>::Register(E, "Map");
     ElunaTemplate<Map>::SetMethods(E, MapMethods);
-
-    ElunaTemplate<AuctionHouseEntry>::Register(E, "AuctionHouseEntry");
-    ElunaTemplate<AuctionHouseEntry>::SetMethods(E, AuctionMethods);
-
-    ElunaTemplate<BattleGround>::Register(E, "BattleGround");
-    ElunaTemplate<BattleGround>::SetMethods(E, BattleGroundMethods);
 
     ElunaTemplate<WorldPacket>::Register(E, "WorldPacket", true);
     ElunaTemplate<WorldPacket>::SetMethods(E, PacketMethods);

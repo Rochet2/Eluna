@@ -79,7 +79,6 @@ struct FactionTemplateEntry;
 
 namespace ElunaUtil
 {
-
     uint32 GetCurrTime();
 
     uint32 GetTimeDiff(uint32 oldMSTime);
@@ -123,18 +122,6 @@ namespace ElunaUtil
         uint32 const i_dead; // 0 both, 1 alive, 2 dead
         bool const i_nearest;
     };
-
-    /*
-     * Encodes `data` in Base-64 and store the result in `output`.
-     */
-    void EncodeData(const unsigned char* data, size_t input_length, std::string& output);
-
-    /*
-     * Decodes `data` from Base-64 and returns a pointer to the result, or `NULL` on error.
-     *
-     * The returned result buffer must be `delete[]`ed by the caller.
-     */
-    unsigned char* DecodeData(const char* data, size_t *output_length);
 };
 
 #endif

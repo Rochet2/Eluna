@@ -202,11 +202,6 @@ private:
     uint8 push_counter;
     bool enabled;
 
-    // Map from instance ID -> Lua table ref
-    std::unordered_map<uint32, int> instanceDataRefs;
-    // Map from map ID -> Lua table ref
-    std::unordered_map<uint32, int> continentDataRefs;
-
     // WorldObject guid (map specific guid) -> Lua table ref
     std::unordered_map<ObjectGuid, int> worldObjectDataRefs;
 
@@ -339,30 +334,6 @@ public:
     {
         return worldObjectDataRefs;
     }
-
-    /*
-     * Returns `true` if Eluna has instance data for `map`.
-     */
-    bool HasInstanceData(Map const* map);
-
-    /*
-     * Use the top element of the stack as the instance data table for `map`,
-     *   then pops it off the stack.
-     */
-    void CreateInstanceData(Map const* map);
-
-    /*
-     * Retrieve the instance data for the `Map` scripted by `ai` and push it
-     *   onto the stack.
-     *
-     * An `ElunaInstanceAI` is needed because the instance data might
-     *   not exist (i.e. Eluna has been reloaded).
-     *
-     * In that case, the AI is "reloaded" (new instance data table is created
-     *   and loaded with the last known save state, and `Load`/`Initialize`
-     *   hooks are called).
-     */
-    void PushInstanceData(lua_State* L, ElunaInstanceAI* ai, bool incrementCounter = true);
 
     void RunScripts();
     bool IsEnabled() const { return enabled; }

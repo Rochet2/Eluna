@@ -14,7 +14,6 @@
 #include "ElunaUtility.h"
 #include "ElunaGameObjectAI.h"
 #include "ElunaCreatureAI.h"
-#include "ElunaInstanceAI.h"
 
 // Filesystem
 #ifdef USING_BOOST
@@ -242,9 +241,6 @@ void Eluna::CloseLua()
     if (L)
         lua_close(L);
     L = nullptr;
-
-    instanceDataRefs.clear();
-    continentDataRefs.clear();
 }
 
 void Eluna::OpenLua()
@@ -990,101 +986,4 @@ GameObjectAI* Eluna::GetAI(GameObject* gameobject)
     }
 
     return nullptr;
-}
-
-InstanceData* Eluna::GetInstanceData(Map* map)
-{
-    if (!IsEnabled())
-        return NULL;
-
-    for (auto const & event_id : Hooks::TypeSpecific<BINDTYPE_MAP>::events)
-    {
-        auto key = EntryKey(event_id.first, BINDTYPE_MAP, map->GetId());
-        if (EntryEventBindings->HasBindingsFor(key))
-            return new ElunaInstanceAI(map);
-    }
-
-    return NULL;
-}
-
-bool Eluna::HasInstanceData(Map const* map)
-{
-    if (!map->Instanceable())
-        return continentDataRefs.find(map->GetId()) != continentDataRefs.end();
-    else
-        return instanceDataRefs.find(map->GetInstanceId()) != instanceDataRefs.end();
-}
-
-void Eluna::CreateInstanceData(Map const* map)
-{
-    ASSERT(lua_istable(L, -1));
-    int ref = luaL_ref(L, LUA_REGISTRYINDEX);
-    if (ref == LUA_REFNIL)
-        return;
-
-    if (!map->Instanceable())
-    {
-        uint32 mapId = map->GetId();
-
-        // If there's another table that was already stored for the map, unref it.
-        auto mapRef = continentDataRefs.find(mapId);
-        if (mapRef != continentDataRefs.end())
-        {
-            luaL_unref(L, LUA_REGISTRYINDEX, mapRef->second);
-        }
-
-        continentDataRefs[mapId] = ref;
-    }
-    else
-    {
-        uint32 instanceId = map->GetInstanceId();
-
-        // If there's another table that was already stored for the instance, unref it.
-        auto instRef = instanceDataRefs.find(instanceId);
-        if (instRef != instanceDataRefs.end())
-        {
-            luaL_unref(L, LUA_REGISTRYINDEX, instRef->second);
-        }
-
-        instanceDataRefs[instanceId] = ref;
-    }
-}
-
-/*
- * Unrefs the instanceId related events and data
- * Does all required actions for when an instance is freed.
- */
-void Eluna::FreeInstanceId(uint32 instanceId)
-{
-    //for (auto const & event_id : Hooks::eventsMap)
-    //{
-    //    auto key = EntryKey(event_id.first, BINDTYPE_INSTANCE, instanceId);
-
-    //    if (EntryEventBindings->HasBindingsFor(key))
-    //        EntryEventBindings->Clear(key);
-    //}
-
-    if (instanceDataRefs.find(instanceId) != instanceDataRefs.end())
-    {
-        luaL_unref(L, LUA_REGISTRYINDEX, instanceDataRefs[instanceId]);
-        instanceDataRefs.erase(instanceId);
-    }
-}
-
-void Eluna::PushInstanceData(lua_State* L, ElunaInstanceAI* ai, bool incrementCounter)
-{
-    // Check if the instance data is missing (i.e. someone reloaded Eluna).
-    if (!HasInstanceData(ai->instance))
-        ai->Reload();
-
-    // Get the instance data table from the registry.
-    if (!ai->instance->Instanceable())
-        lua_rawgeti(L, LUA_REGISTRYINDEX, continentDataRefs[ai->instance->GetId()]);
-    else
-        lua_rawgeti(L, LUA_REGISTRYINDEX, instanceDataRefs[ai->instance->GetInstanceId()]);
-
-    ASSERT(lua_istable(L, -1));
-
-    if (incrementCounter)
-        ++push_counter;
 }
