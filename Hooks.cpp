@@ -105,15 +105,15 @@ const Hooks::HookContainer Hooks::eventsServer = {
     { "VEHICLE_EVENT_ON_REMOVE_PASSENGER",            ENV_NONE }, // (event, vehicle, unit)
 };
 
-const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_CREATURE>::events = {
+template<> const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_CREATURE>::events = {
 };
-const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_GAMEOBJECT>::events = {
+template<> const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_GAMEOBJECT>::events = {
 };
-const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_ITEM>::events = {
+template<> const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_ITEM>::events = {
 };
-const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_MAP>::events = {
+template<> const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_MAP>::events = {
 };
-const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_PLAYERGOSSIP>::events = {
+template<> const Hooks::HookContainer Hooks::TypeSpecific<BINDTYPE_PLAYERGOSSIP>::events = {
 };
 
 ElunaEnvironments Hooks::GetEventEnv(HookContainer const & hook_container, std::string const & event_id)

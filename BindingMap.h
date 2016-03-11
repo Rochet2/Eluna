@@ -11,6 +11,7 @@
 #include "Common.h"
 #include "ObjectGuid.h"
 #include <type_traits>
+#include "LuaEngine.h"
 
 extern "C"
 {
