@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -1958,6 +1958,19 @@ namespace LuaUnit
     }
 
     /**
+     * Makes the [Unit] perform the given emote continuously.
+     *
+     * @param uint32 emoteId
+     */
+    int EmoteState(lua_State* L, Unit* unit)
+    {
+        uint32 emoteId = Eluna::CHECKVAL<uint32>(L, 2);
+
+        unit->SetUInt32Value(UNIT_NPC_EMOTESTATE, emoteId);
+        return 0;
+    }
+
+    /**
      * Returns calculated percentage from Health
      *
      * @return int32 percentage
@@ -2462,49 +2475,6 @@ namespace LuaUnit
     int RemoveAllAuras(lua_State* /*L*/, Unit* unit)
     {
         unit->RemoveAllAuras();
-        return 0;
-    }
-
-    /**
-     * The [Unit] plays a sound to a [Player], if no [Player] it will play the sound to everyone near
-     *
-     * @param uint32 sound : entry of a sound
-     * @param [Player] player : [Player] to play the sound to
-     */
-    int PlayDirectSound(lua_State* L, Unit* unit)
-    {
-        uint32 soundId = Eluna::CHECKVAL<uint32>(L, 2);
-        Player* player = Eluna::CHECKOBJ<Player>(L, 3, false);
-        if (!sSoundEntriesStore.LookupEntry(soundId))
-            return 0;
-
-        if (player)
-            unit->PlayDirectSound(soundId, player);
-        else
-            unit->PlayDirectSound(soundId);
-        return 0;
-    }
-
-    /**
-     * The [Unit] plays a sound to a [Player]
-     *
-     * If no [Player] it will play the sound to everyone near
-     * Sound will fade the further you are
-     *
-     * @param uint32 sound : entry of a sound
-     * @param [Player] player : [Player] to play the sound to
-     */
-    int PlayDistanceSound(lua_State* L, Unit* unit)
-    {
-        uint32 soundId = Eluna::CHECKVAL<uint32>(L, 2);
-        Player* player = Eluna::CHECKOBJ<Player>(L, 3, false);
-        if (!sSoundEntriesStore.LookupEntry(soundId))
-            return 0;
-
-        if (player)
-            unit->PlayDistanceSound(soundId, player);
-        else
-            unit->PlayDistanceSound(soundId);
         return 0;
     }
     

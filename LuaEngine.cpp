@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -12,8 +12,6 @@
 #include "ElunaIncludes.h"
 #include "ElunaTemplate.h"
 #include "ElunaUtility.h"
-#include "ElunaGameObjectAI.h"
-#include "ElunaCreatureAI.h"
 
 // Filesystem
 #ifdef USING_BOOST
@@ -274,7 +272,7 @@ void Eluna::OpenLua()
     lua_pushstring(L, "v");
     lua_setfield(L, -2, "__mode");
     lua_setmetatable(L, -2);
-    lua_setglobal(L, ELUNA_OBJECT_STORE);
+    lua_setfield(L, LUA_REGISTRYINDEX, ELUNA_OBJECT_STORE);
 
     // Set lua require folder paths (scripts folder structure)
     lua_getglobal(L, "package");
@@ -517,7 +515,8 @@ void Eluna::RunScripts()
 
 void Eluna::InvalidateObjects()
 {
-    lua_getglobal(L, ELUNA_OBJECT_STORE);
+    lua_pushstring(L, ELUNA_OBJECT_STORE);
+    lua_rawget(L, LUA_REGISTRYINDEX);
     ASSERT(lua_istable(L, -1));
 
     lua_pushnil(L);
@@ -944,38 +943,4 @@ int Eluna::CallOneFunction(int number_of_functions, int number_of_arguments, int
     // Stack: event_id, [arguments], [functions - 1], [results]
 
     return functions_top + 1; // Return the location of the first result (if any exist).
-}
-
-CreatureAI* Eluna::GetAI(Creature* creature)
-{
-    if (!IsEnabled())
-        return nullptr;
-
-    for (auto const & event_id : Hooks::TypeSpecific<BINDTYPE_CREATURE>::events)
-    {
-        auto entryKey = EntryKey(event_id.first, BINDTYPE_CREATURE, creature->GetEntry());
-        auto guidKey = GuidKey(event_id.first, BINDTYPE_CREATURE, GUID_LOPART(creature->GET_GUID()));
-
-        if (EntryEventBindings->HasBindingsFor(entryKey) || GuidEventBindings->HasBindingsFor(guidKey))
-            return new ElunaCreatureAI(creature);
-    }
-
-    return nullptr;
-}
-
-GameObjectAI* Eluna::GetAI(GameObject* gameobject)
-{
-    if (!IsEnabled())
-        return nullptr;
-
-    for (auto const & event_id : Hooks::TypeSpecific<BINDTYPE_GAMEOBJECT>::events)
-    {
-        auto entryKey = EntryKey(event_id.first, BINDTYPE_GAMEOBJECT, gameobject->GetEntry());
-        auto guidKey = GuidKey(event_id.first, BINDTYPE_GAMEOBJECT, GUID_LOPART(gameobject->GET_GUID()));
-
-        if (EntryEventBindings->HasBindingsFor(entryKey) || GuidEventBindings->HasBindingsFor(guidKey))
-            return new ElunaGameObjectAI(gameobject);
-    }
-
-    return nullptr;
 }

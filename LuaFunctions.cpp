@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -206,13 +206,16 @@ ElunaRegister<WorldObject> WorldObjectMethods[] =
     { ENV_BOTH, "IsWithinLoS", &LuaWorldObject::IsWithinLoS },
 
     // Other
-    { ENV_BOTH, "SummonGameObject", &LuaWorldObject::SummonGameObject },            // :SummonGameObject(entry, x, y, z, o[, respawnDelay]) - Spawns an object to location. Returns the object or nil
-    { ENV_BOTH, "SpawnCreature", &LuaWorldObject::SpawnCreature },                  // :SpawnCreature(entry, x, y, z, o[, spawnType, despawnDelay]) - Spawns a creature to location that despawns after given time (0 for infinite). Returns the creature or nil
-    { ENV_BOTH, "SendPacket", &LuaWorldObject::SendPacket },                        // :SendPacket(packet) - Sends a specified packet to everyone around
+    { ENV_BOTH, "SummonGameObject", &LuaWorldObject::SummonGameObject },
+    { ENV_BOTH, "SpawnCreature", &LuaWorldObject::SpawnCreature },
+    { ENV_BOTH, "SendPacket", &LuaWorldObject::SendPacket },
     { ENV_MAP, "RegisterEvent", &LuaWorldObject::RegisterEvent },
     { ENV_MAP, "RemoveEventById", &LuaWorldObject::RemoveEventById },
     { ENV_MAP, "RemoveEvents", &LuaWorldObject::RemoveEvents },
     { ENV_MAP, "GetDataTable", &LuaWorldObject::GetDataTable },
+    { ENV_MAP, "PlayMusic", &LuaWorldObject::PlayMusic },
+    { ENV_MAP, "PlayDirectSound", &LuaWorldObject::PlayDirectSound },
+    { ENV_MAP, "PlayDistanceSound", &LuaWorldObject::PlayDistanceSound },
 
     { ENV_NONE, nullptr, nullptr },
 };
@@ -366,13 +369,12 @@ ElunaRegister<Unit> UnitMethods[] =
     { ENV_BOTH, "CastSpell", &LuaUnit::CastSpell },                             // :CastSpell(target, spellID[, triggered]) - Casts spell on target (player/npc/creature), if triggered is true then instant cast
     { ENV_BOTH, "CastCustomSpell", &LuaUnit::CastCustomSpell },                 // :CastCustomSpell([Unit] target, uint32 spell, bool triggered = false, int32 bp0 = nil, int32 bp1 = nil, int32 bp2 = nil, [Item] castItem = nil, uint64 originalCaster = 0) - Casts spell on target (player/npc/creature), if triggered is true then instant cast. pb0, 1 and 2 are modifiers for the base points of the spell.
     { ENV_BOTH, "CastSpellAoF", &LuaUnit::CastSpellAoF },                       // :CastSpellAoF(x, y, z, spellID[, triggered]) - Casts the spell on coordinates, if triggered is false has mana cost and cast time
-    { ENV_BOTH, "PlayDirectSound", &LuaUnit::PlayDirectSound },                 // :PlayDirectSound(soundId[, player]) - Unit plays soundID to player, or everyone around if no player
-    { ENV_BOTH, "PlayDistanceSound", &LuaUnit::PlayDistanceSound },             // :PlayDistanceSound(soundId[, player]) - Unit plays soundID to player, or everyone around if no player. The sound fades the further you are
     { ENV_BOTH, "Kill", &LuaUnit::Kill },                                       // :Kill(target, durabilityLoss) - Unit kills the target. Durabilityloss is true by default
     { ENV_BOTH, "StopSpellCast", &LuaUnit::StopSpellCast },                     // :StopSpellCast([spellId]) - Stops the unit from casting a spell. If a spellId is defined, it will stop that unit from casting that spell
     { ENV_BOTH, "InterruptSpell", &LuaUnit::InterruptSpell },                   // :InterruptSpell(spellType[, delayed]) - Interrupts the unit's spell by the spellType. If delayed is true it will skip if the spell is delayed.
     { ENV_BOTH, "SendChatMessageToPlayer", &LuaUnit::SendChatMessageToPlayer }, // :SendChatMessageToPlayer(type, lang, msg, target) - Unit sends a chat message to the given target player
     { ENV_BOTH, "Emote", &LuaUnit::Emote },                                     // :Emote(emote)
+    { ENV_BOTH, "EmoteState", &LuaUnit::EmoteState },
     { ENV_BOTH, "CountPctFromCurHealth", &LuaUnit::CountPctFromCurHealth },     // :CountPctFromCurHealth(int32 pct)
     { ENV_BOTH, "CountPctFromMaxHealth", &LuaUnit::CountPctFromMaxHealth },     // :CountPctFromMaxHealth()
     { ENV_BOTH, "Dismount", &LuaUnit::Dismount },                               // :Dismount() - Dismounts the unit.
@@ -635,7 +637,6 @@ ElunaRegister<Player> PlayerMethods[] =
     { ENV_BOTH, "RemoveItem", &LuaPlayer::RemoveItem },                                             // :RemoveItem(item/entry, amount) - Removes amount of item from player
     { ENV_BOTH, "RemoveLifetimeKills", &LuaPlayer::RemoveLifetimeKills },                           // :RemoveLifetimeKills(val) - Removes a specified amount(val) of the player's lifetime (honorable) kills
     { ENV_BOTH, "ResurrectPlayer", &LuaPlayer::ResurrectPlayer },                                   // :ResurrectPlayer([percent[, sickness(bool)]]) - Resurrects the player at percentage, player gets resurrection sickness if sickness set to true
-    { ENV_BOTH, "PlaySoundToPlayer", &LuaPlayer::PlaySoundToPlayer },                               // :PlaySoundToPlayer(soundId) - Plays the specified sound to the player
     { ENV_BOTH, "EquipItem", &LuaPlayer::EquipItem },                                               // :EquipItem(entry/item, slot) - Equips given item or item entry for player to given slot. Returns the equipped item or nil
     { ENV_BOTH, "ResetSpellCooldown", &LuaPlayer::ResetSpellCooldown },                             // :ResetSpellCooldown(spellId, update(bool~optional)) - Resets cooldown of the specified spellId. If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
     { ENV_BOTH, "ResetTypeCooldowns", &LuaPlayer::ResetTypeCooldowns },                             // :ResetTypeCooldowns(category, update(bool~optional)) - Resets all cooldowns for the spell category(type). If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
@@ -717,6 +718,10 @@ ElunaRegister<Player> PlayerMethods[] =
     { ENV_BOTH, "SaveToDB", &LuaPlayer::SaveToDB },                                                 // :SaveToDB() - Saves to database
     { ENV_WORLD, "GroupInvite", &LuaPlayer::GroupInvite },
     { ENV_WORLD, "GroupCreate", &LuaPlayer::GroupCreate },
+    { ENV_BOTH, "SendCinematicStart", &LuaPlayer::SendCinematicStart },
+#if !defined(CLASSIC) && !defined(TBC)
+    { ENV_BOTH, "SendMovieStart", &LuaPlayer::SendMovieStart },
+#endif
 #ifdef CLASSIC
     { ENV_BOTH, "UpdateHonor", &LuaPlayer::UpdateHonor },                                             // :UpdateHonor() - Updates Player Honor
     { ENV_BOTH, "ResetHonor", &LuaPlayer::ResetHonor },                                               // :ResetHonor() - Resets Player Honor

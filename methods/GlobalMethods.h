@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -57,7 +57,8 @@ namespace LuaGlobalFunctions
      * Returns emulator version
      *
      * - For TrinityCore returns the date of the last revision, e.g. `2015-08-26 22:53:12 +0300`
-     * - For cMaNGOS/MaNGOS returns the date and time of the last revision, e.g. `2015-09-06 13:18:50`
+     * - For cMaNGOS returns the date and time of the last revision, e.g. `2015-09-06 13:18:50`
+     * - for MaNGOS returns the version number as string, e.g. `21000`
      *
      * @return string version
      */
@@ -166,7 +167,11 @@ namespace LuaGlobalFunctions
 #ifdef TRINITY
             boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
 #else
+#ifdef MANGOS
+            ACE_READ_GUARD_RETURN(HashMapHolder<Player>::LockType, g, HashMapHolder<Player>::GetLock(), 0)
+#else
             HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
+#endif
 #endif
             const HashMapHolder<Player>::MapType& m = eObjectAccessor()GetPlayers();
             for (HashMapHolder<Player>::MapType::const_iterator it = m.begin(); it != m.end(); ++it)
@@ -448,7 +453,11 @@ namespace LuaGlobalFunctions
         if (locale >= TOTAL_LOCALES)
             return luaL_argerror(L, 2, "valid LocaleConstant expected");
 
+#ifdef TRINITY
+        AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(areaOrZoneId);
+#else
         AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(areaOrZoneId);
+#endif
         if (!areaEntry)
             return luaL_argerror(L, 1, "valid Area or Zone ID expected");
 

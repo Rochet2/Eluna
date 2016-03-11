@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -28,6 +28,10 @@
 #include "Hooks.h"
 #include "ElunaUtility.h"
 #include "BindingMap.h"
+
+#ifndef USING_BOOST
+#include <ace/Recursive_Thread_Mutex.h>
+#endif
 
 extern "C"
 {

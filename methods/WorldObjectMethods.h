@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -861,6 +861,82 @@ namespace LuaWorldObject
             lua_rawgeti(L, LUA_REGISTRYINDEX, it->second);
         }
         return 1;
+    }
+
+    /**
+     * The [WorldObject] plays music to a [Player]
+     *
+     * If no [Player] provided it will play the music to everyone near.
+     * This method does not interrupt previously played music.
+     *
+     * See also [WorldObject:PlayDistanceSound], [WorldObject:PlayDirectSound]
+     *
+     * @param uint32 music : entry of a music
+     * @param [Player] player = nil : [Player] to play the music to
+     */
+    int PlayMusic(lua_State* L, WorldObject* obj)
+    {
+        uint32 musicid = Eluna::CHECKVAL<uint32>(L, 2);
+        Player* player = Eluna::CHECKOBJ<Player>(L, 3, false);
+
+        WorldPacket data(SMSG_PLAY_MUSIC, 4);
+        data << uint32(musicid);
+        if (player)
+            player->SendDirectMessage(&data);
+        else
+            obj->SendMessageToSet(&data, true);
+        return 0;
+    }
+
+    /**
+     * The [WorldObject] plays a sound to a [Player]
+     *
+     * If no [Player] provided it will play the sound to everyone near.
+     * This method will play sound and does not interrupt prvious sound.
+     *
+     * See also [WorldObject:PlayDistanceSound], [WorldObject:PlayMusic]
+     *
+     * @param uint32 sound : entry of a sound
+     * @param [Player] player = nil : [Player] to play the sound to
+     */
+    int PlayDirectSound(lua_State* L, WorldObject* obj)
+    {
+        uint32 soundId = Eluna::CHECKVAL<uint32>(L, 2);
+        Player* player = Eluna::CHECKOBJ<Player>(L, 3, false);
+        if (!sSoundEntriesStore.LookupEntry(soundId))
+            return 0;
+
+        if (player)
+            obj->PlayDirectSound(soundId, player);
+        else
+            obj->PlayDirectSound(soundId);
+        return 0;
+    }
+
+    /**
+     * The [WorldObject] plays a sound to a [Player]
+     *
+     * If no [Player] it will play the sound to everyone near.
+     * Sound will fade the further you are from the [WorldObject].
+     * This method interrupts previously playing sound.
+     *
+     * See also [WorldObject:PlayDirectSound], [WorldObject:PlayMusic]
+     *
+     * @param uint32 sound : entry of a sound
+     * @param [Player] player = nil : [Player] to play the sound to
+     */
+    int PlayDistanceSound(lua_State* L, WorldObject* obj)
+    {
+        uint32 soundId = Eluna::CHECKVAL<uint32>(L, 2);
+        Player* player = Eluna::CHECKOBJ<Player>(L, 3, false);
+        if (!sSoundEntriesStore.LookupEntry(soundId))
+            return 0;
+
+        if (player)
+            obj->PlayDistanceSound(soundId, player);
+        else
+            obj->PlayDistanceSound(soundId);
+        return 0;
     }
 };
 #endif

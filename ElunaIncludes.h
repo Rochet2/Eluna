@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -73,7 +73,7 @@ typedef Opcodes                 OpcodesList;
  */
 #ifdef MANGOS
 #define CORE_NAME               "MaNGOS"
-#define CORE_VERSION            REVISION_DATE " " REVISION_TIME
+#define CORE_VERSION            REVISION_NR
 #endif
 
 #ifdef CMANGOS

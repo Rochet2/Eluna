@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -22,8 +22,8 @@ extern "C"
 struct lua_State;
 
 /*
- * A set of bindings from keys of type `K` to Lua references.
- */
+* A set of bindings from keys of type `K` to Lua references.
+*/
 template<typename K>
 class BindingMap
 {
@@ -57,15 +57,15 @@ private:
 
     std::unordered_map<K, BindingList> bindings;
     /*
-     * This table is for fast removal of bindings by ID.
-     *
-     * Instead of having to look through (potentially) every BindingList to find
-     *   the Binding with the right ID, this allows you to go directly to the
-     *   BindingList that might have the Binding with that ID.
-     *
-     * However, you must be careful not to store pointers to BindingLists
-     *   that no longer exist (see `void Clear(const K& key)` implementation).
-     */
+    * This table is for fast removal of bindings by ID.
+    *
+    * Instead of having to look through (potentially) every BindingList to find
+    *   the Binding with the right ID, this allows you to go directly to the
+    *   BindingList that might have the Binding with that ID.
+    *
+    * However, you must be careful not to store pointers to BindingLists
+    *   that no longer exist (see `void Clear(const K& key)` implementation).
+    */
     std::unordered_map<BindGuid, BindingList*> id_lookup_table;
 
     static int cancelBinding(lua_State *L)
@@ -83,12 +83,12 @@ public:
     { }
 
     /*
-     * Insert a new binding from `key` to `ref`, which lasts for `shots`-many pushes.
-     * Pushes a cancel callback function to lua stack.
-     *
-     * If `shots` is 0, it will never automatically expire, but can still be
-     *   removed with `Clear` or `Remove`.
-     */
+    * Insert a new binding from `key` to `ref`, which lasts for `shots`-many pushes.
+    * Pushes a cancel callback function to lua stack.
+    *
+    * If `shots` is 0, it will never automatically expire, but can still be
+    *   removed with `Clear` or `Remove`.
+    */
     BindGuid Insert(const K& key, int ref, uint32 shots)
     {
         BindGuid id = (++maxBindingID);
@@ -107,8 +107,8 @@ public:
     }
 
     /*
-     * Clear all bindings for `key`.
-     */
+    * Clear all bindings for `key`.
+    */
     void Clear(const K& key)
     {
         if (bindings.empty())
@@ -131,8 +131,8 @@ public:
     }
 
     /*
-     * Clear all bindings for all keys.
-     */
+    * Clear all bindings for all keys.
+    */
     void Clear()
     {
         if (bindings.empty())
@@ -143,10 +143,10 @@ public:
     }
 
     /*
-     * Remove a specific binding identified by `id`.
-     *
-     * If `id` in invalid, nothing is removed.
-     */
+    * Remove a specific binding identified by `id`.
+    *
+    * If `id` in invalid, nothing is removed.
+    */
     void Remove(BindGuid id)
     {
         auto iter = id_lookup_table.find(id);
@@ -172,8 +172,8 @@ public:
     }
 
     /*
-     * Check whether `key` has any bindings.
-     */
+    * Check whether `key` has any bindings.
+    */
     bool HasBindingsFor(const K& key)
     {
         if (bindings.empty())
@@ -188,8 +188,8 @@ public:
     }
 
     /*
-     * Push all Lua references for `key` onto the stack.
-     */
+    * Push all Lua references for `key` onto the stack.
+    */
     void PushRefsFor(const K& key)
     {
         if (bindings.empty())
@@ -235,9 +235,9 @@ struct EventKey
 };
 
 /*
- * A `BindingMap` key type for event ID/Object entry ID bindings
- *   (entry specific - event happens for some entry (creature, gameobject .. map)).
- */
+* A `BindingMap` key type for event ID/Object entry ID bindings
+*   (entry specific - event happens for some entry (creature, gameobject .. map)).
+*/
 struct EntryKey
 {
     std::string event_id;
@@ -286,18 +286,23 @@ public:
         return seed;
     }
 
-    template <typename T>
+    template <typename T, typename std::enable_if<std::is_enum<T>::value>::type* = nullptr>
     static inline result_type hash(T const & t)
     {
-        // Possibly convert int to std::underlying_type or find another way
-        using Hasher = typename std::conditional< std::is_enum<T>::value, std::hash<int>, std::hash<T> >::type;
-        return Hasher()(t);
+        return std::hash<typename std::underlying_type<T>::type>()(t);
+    }
+
+    template <typename T, typename std::enable_if<!std::is_enum<T>::value>::type* = nullptr>
+    static inline result_type hash(T const & t)
+    {
+        return std::hash<T>()(t);
     }
 
 private:
     template <typename T>
     static inline void _hash_combine(result_type& seed, T const & v)
     {
+        // from http://www.boost.org/doc/libs/1_40_0/boost/functional/hash/hash.hpp
         seed ^= hash(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
 
@@ -310,9 +315,9 @@ private:
 };
 
 /*
- * Implementations of various std functions on the above key types,
- *   so that they can be used within an unordered_map.
- */
+* Implementations of various std functions on the above key types,
+*   so that they can be used within an unordered_map.
+*/
 namespace std
 {
     template<>
@@ -356,8 +361,7 @@ namespace std
 
         hash_helper::result_type operator()(argument_type const& k) const
         {
-            return hash_helper::hash(
-                k.event_id);
+            return hash_helper::hash(k.event_id);
         }
     };
 
@@ -368,10 +372,7 @@ namespace std
 
         hash_helper::result_type operator()(argument_type const& k) const
         {
-            return hash_helper::hash(
-                k.event_id,
-                k.type_id,
-                k.entry);
+            return hash_helper::hash(k.event_id, k.type_id, k.entry);
         }
     };
 
@@ -382,10 +383,7 @@ namespace std
 
         hash_helper::result_type operator()(argument_type const& k) const
         {
-            return hash_helper::hash(
-                k.event_id,
-                k.type_id,
-                k.guid);
+            return hash_helper::hash(k.event_id, k.type_id, k.guid);
         }
     };
 }

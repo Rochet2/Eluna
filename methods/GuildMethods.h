@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2015 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -27,7 +27,11 @@ namespace LuaGuild
 #ifdef TRINITY
             boost::shared_lock<boost::shared_mutex> lock(*HashMapHolder<Player>::GetLock());
 #else
+#ifdef MANGOS
+            ACE_READ_GUARD_RETURN(HashMapHolder<Player>::LockType, g, HashMapHolder<Player>::GetLock(), 0)
+#else
             HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
+#endif
 #endif
             const HashMapHolder<Player>::MapType& m = eObjectAccessor()GetPlayers();
             for (HashMapHolder<Player>::MapType::const_iterator it = m.begin(); it != m.end(); ++it)
