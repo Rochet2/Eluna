@@ -121,7 +121,6 @@ ElunaFunction::ElunaRegister GlobalMethods[] =
     { ENV_NONE, "Ban", &LuaGlobalFunctions::Ban },
     { ENV_BOTH, "SaveAllPlayers", &LuaGlobalFunctions::SaveAllPlayers },
     { ENV_BOTH, "SendMail", &LuaGlobalFunctions::SendMail },
-    { ENV_WORLD, "AddTaxiPath", &LuaGlobalFunctions::AddTaxiPath },
     { ENV_BOTH, "UintNew", &LuaGlobalFunctions::UintNew },
     { ENV_BOTH, "UintToString", &LuaGlobalFunctions::UintToString },
     { ENV_BOTH, "UintToHex", &LuaGlobalFunctions::UintToHex },

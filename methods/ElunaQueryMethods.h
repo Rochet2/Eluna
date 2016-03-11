@@ -68,10 +68,7 @@ namespace LuaQuery
      */
     int GetRowCount(lua_State* L, ElunaQuery* result)
     {
-        if (RESULT->GetRowCount() > (uint32)-1)
-            Eluna::Push(L, std::numeric_limits<uint32>::max());
-        else
-            Eluna::Push(L, static_cast<uint32>(RESULT->GetRowCount()));
+        Eluna::Push(L, RESULT->GetRowCount());
         return 1;
     }
 
@@ -295,7 +292,7 @@ namespace LuaQuery
 #endif
             else
             {
-                if (field.flags & UNSIGNED_FLAG == UNSIGNED_FLAG)
+                if ((field.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                 {
                     switch (row[i].GetType())
                     {
@@ -428,7 +425,8 @@ namespace LuaQuery
     {
         bool asArray = Eluna::CHECKVAL<bool>(L, 2, false);
 
-        lua_createtable(L, RESULT->GetRowCount(), asArray ? 1 : 0);
+        int narr = RESULT->GetRowCount() <= std::numeric_limits<int>::max() ? static_cast<int>(RESULT->GetRowCount()) : std::numeric_limits<int>::max();
+        lua_createtable(L, narr, asArray ? 1 : 0);
         int tbl = lua_gettop(L);
 
         size_t i = 1;

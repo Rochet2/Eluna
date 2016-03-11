@@ -110,22 +110,26 @@ bool ElunaUtil::WorldObjectInRangeCheck::operator()(WorldObject* u)
     return true;
 }
 
-static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-                                'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-                                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                                'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
-                                'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-                                'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-                                'w', 'x', 'y', 'z', '0', '1', '2', '3',
-                                '4', '5', '6', '7', '8', '9', '+', '/'};
-static char decoding_table[256];
-static int mod_table[] = {0, 2, 1};
-
-static void build_decoding_table()
+static std::vector<char> create_decoding_table(const std::vector<char>& encoding_table)
 {
-    for (int i = 0; i < 64; i++)
+    std::vector<char> decoding_table;
+    decoding_table.resize(256, '\0');
+    for (size_t i = 0; i < encoding_table.size(); ++i)
         decoding_table[(unsigned char)encoding_table[i]] = i;
+    return decoding_table;
 }
+static const std::vector<char> encoding_table = {
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+    'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+    'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+    'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+    'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+    'w', 'x', 'y', 'z', '0', '1', '2', '3',
+    '4', '5', '6', '7', '8', '9', '+', '/'
+};
+static const std::vector<char> decoding_table = create_decoding_table(encoding_table);
+static int mod_table[] = {0, 2, 1};
 
 void ElunaUtil::EncodeData(const unsigned char* data, size_t input_length, std::string& output)
 {
@@ -155,9 +159,6 @@ void ElunaUtil::EncodeData(const unsigned char* data, size_t input_length, std::
 
 unsigned char* ElunaUtil::DecodeData(const char *data, size_t *output_length)
 {
-    if (decoding_table[(unsigned char)'B'] == 0)
-        build_decoding_table();
-
     size_t input_length = strlen(data);
 
     if (input_length % 4 != 0)

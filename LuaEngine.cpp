@@ -768,9 +768,22 @@ void Eluna::Push(lua_State* luastate, Object const* obj)
     }
 }
 
+template <typename T, typename U>
+static bool CanTypeFitValue(const U value) {
+    const intmax_t bot_t = intmax_t(std::numeric_limits<T>::min());
+    const intmax_t bot_u = intmax_t(std::numeric_limits<U>::min());
+    const uintmax_t top_t = uintmax_t(std::numeric_limits<T>::max());
+    const uintmax_t top_u = uintmax_t(std::numeric_limits<U>::max());
+    return !((bot_t > bot_u && value < static_cast<U> (bot_t)) || (top_t < top_u && value > static_cast<U> (top_t)));
+}
+
 template<typename T>
 static T CheckIntegerRange(lua_State* luastate, int narg)
 {
+    static_assert(static_cast<uintmax_t>(std::numeric_limits<T>::max()) <= static_cast<uintmax_t>(std::numeric_limits<lua_Integer>::max()),
+        "lua_Integer cannot hold given type T, it has too large max value.");
+    static_assert(static_cast<intmax_t>(std::numeric_limits<T>::min()) >= static_cast<intmax_t>(std::numeric_limits<lua_Integer>::min()),
+        "lua_Integer cannot hold given type T, it has too large minimum value");
     lua_Integer value = luaL_checkinteger(luastate, narg);
 
     if (value > static_cast<lua_Integer>(std::numeric_limits<T>::max()))
@@ -786,7 +799,7 @@ static T CheckIntegerRange(lua_State* luastate, int narg)
         ss << "value must be greater than or equal to " << static_cast<lua_Integer>(std::numeric_limits<T>::min());
         return luaL_argerror(luastate, narg, ss.str().c_str());
     }
-    return value;
+    return static_cast<T>(value);
 }
 
 template<> bool Eluna::CHECKVAL<bool>(lua_State* luastate, int narg)
@@ -953,7 +966,7 @@ CreatureAI* Eluna::GetAI(Creature* creature)
     for (auto const & event_id : Hooks::TypeSpecific<BINDTYPE_CREATURE>::events)
     {
         auto entryKey = EntryKey(event_id.first, BINDTYPE_CREATURE, creature->GetEntry());
-        auto guidKey = GuidKey(event_id.first, BINDTYPE_CREATURE, creature->GET_GUID());
+        auto guidKey = GuidKey(event_id.first, BINDTYPE_CREATURE, GUID_LOPART(creature->GET_GUID()));
 
         if (EntryEventBindings->HasBindingsFor(entryKey) || GuidEventBindings->HasBindingsFor(guidKey))
             return new ElunaCreatureAI(creature);
@@ -970,7 +983,7 @@ GameObjectAI* Eluna::GetAI(GameObject* gameobject)
     for (auto const & event_id : Hooks::TypeSpecific<BINDTYPE_GAMEOBJECT>::events)
     {
         auto entryKey = EntryKey(event_id.first, BINDTYPE_GAMEOBJECT, gameobject->GetEntry());
-        auto guidKey = GuidKey(event_id.first, BINDTYPE_GAMEOBJECT, gameobject->GET_GUID());
+        auto guidKey = GuidKey(event_id.first, BINDTYPE_GAMEOBJECT, GUID_LOPART(gameobject->GET_GUID()));
 
         if (EntryEventBindings->HasBindingsFor(entryKey) || GuidEventBindings->HasBindingsFor(guidKey))
             return new ElunaGameObjectAI(gameobject);
