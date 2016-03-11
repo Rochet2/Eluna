@@ -82,33 +82,19 @@ public:
     void* GetObj() const { return object; }
     // Returns whether the object is valid or not
     bool IsValid() const { return _isvalid; }
-    // Returns whether the object can be invalidated or not
-    bool CanInvalidate() const { return _invalidate; }
     // Returns pointer to the wrapped object's type name
     const char* GetTypeName() const { return type_name; }
 
-    // Sets the object pointer that is wrapped
-    void SetObj(void* obj)
-    {
-        ASSERT(obj);
-        object = obj;
-        SetValid(true);
-    }
     // Sets the object pointer to valid or invalid
     void SetValid(bool valid)
     {
         ASSERT(!valid || (valid && object));
         _isvalid = valid;
     }
-    // Sets whether the pointer will be invalidated at end of calls
-    void SetValidation(bool invalidate)
-    {
-        _invalidate = invalidate;
-    }
     // Invalidates the pointer if it should be invalidated
     void Invalidate()
     {
-        if (CanInvalidate())
+        if (_invalidate)
             _isvalid = false;
     }
 
@@ -184,10 +170,6 @@ public:
         // special method to get the object type
         lua_pushcfunction(E->L, GetType);
         lua_setfield(E->L, metatable, "GetObjectType");
-
-        // special method to decide object invalidation at end of call
-        lua_pushcfunction(E->L, SetInvalidation);
-        lua_setfield(E->L, metatable, "SetInvalidation");
 
         // pop metatable
         lua_pop(E->L, 1);
@@ -326,15 +308,6 @@ public:
         return 1;
     }
 
-    static int SetInvalidation(lua_State* L)
-    {
-        ElunaObject* elunaObj = Eluna::CHECKOBJ<ElunaObject>(L, 1);
-        bool invalidate = Eluna::CHECKVAL<bool>(L, 2);
-
-        elunaObj->SetValidation(invalidate);
-        return 0;
-    }
-
     static int CallMethod(lua_State* L)
     {
         T* obj = Eluna::CHECKOBJ<T>(L, 1); // get self
@@ -398,6 +371,9 @@ template<typename T> bool ElunaTemplate<T>::manageMemory = false;
 template<typename T>
 inline ElunaObject::ElunaObject(T * obj, bool manageMemory) : _isvalid(false), _invalidate(!manageMemory), object(obj), type_name(ElunaTemplate<T>::tname)
 {
+    // This assert triggers if you try to push something that should not be pushed
+    // Todo: make this a compile time check
+    ASSERT(type_name);
     SetValid(true);
 }
 

@@ -731,9 +731,6 @@ void Eluna::Push(lua_State* luastate, WorldObject const* obj)
         case TYPEID_GAMEOBJECT:
             Push(luastate, obj->ToGameObject());
             break;
-        case TYPEID_CORPSE:
-            Push(luastate, obj->ToCorpse());
-            break;
         default:
             ElunaTemplate<WorldObject>::Push(luastate, obj);
     }
@@ -755,9 +752,6 @@ void Eluna::Push(lua_State* luastate, Object const* obj)
             break;
         case TYPEID_GAMEOBJECT:
             Push(luastate, obj->ToGameObject());
-            break;
-        case TYPEID_CORPSE:
-            Push(luastate, obj->ToCorpse());
             break;
         default:
             ElunaTemplate<Object>::Push(luastate, obj);
@@ -865,8 +859,6 @@ template<> WorldObject* Eluna::CHECKOBJ<WorldObject>(lua_State* luastate, int na
     WorldObject* obj = CHECKOBJ<Unit>(luastate, narg, false);
     if (!obj)
         obj = CHECKOBJ<GameObject>(luastate, narg, false);
-    if (!obj)
-        obj = CHECKOBJ<Corpse>(luastate, narg, false);
     if (!obj)
         obj = ElunaTemplate<WorldObject>::Check(luastate, narg, error);
     return obj;
