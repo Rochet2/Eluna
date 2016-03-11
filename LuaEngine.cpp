@@ -757,15 +757,6 @@ void Eluna::Push(lua_State* luastate, Object const* obj)
     }
 }
 
-template <typename T, typename U>
-static bool CanTypeFitValue(const U value) {
-    const intmax_t bot_t = intmax_t(std::numeric_limits<T>::min());
-    const intmax_t bot_u = intmax_t(std::numeric_limits<U>::min());
-    const uintmax_t top_t = uintmax_t(std::numeric_limits<T>::max());
-    const uintmax_t top_u = uintmax_t(std::numeric_limits<U>::max());
-    return !((bot_t > bot_u && value < static_cast<U> (bot_t)) || (top_t < top_u && value > static_cast<U> (top_t)));
-}
-
 template<typename T>
 static T CheckIntegerRange(lua_State* luastate, int narg)
 {
