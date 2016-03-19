@@ -20,7 +20,7 @@ def find_class_files(search_path):
     old_dir = os.getcwd()
     os.chdir(search_path)
     # Search for all files ending in "Methods.h".
-    method_file_names = glob.glob('*Methods.h')
+    method_file_names = glob.glob('*Methods*')
     # Open each file.
     method_files = [open(file_name, 'r') for file_name in method_file_names]
     # Go back to where we were before.
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     # Load up all files with methods we need to parse.
     print 'Finding Eluna method files...'
-    class_files = find_class_files('../')
+    class_files = find_class_files('../methods/')
 
     # Parse all the method files.
     classes = []

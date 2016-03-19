@@ -4,13 +4,15 @@
 * Please see the included DOCS/LICENSE.md for more information
 */
 
-#ifndef CREATUREMETHODS_H
-#define CREATUREMETHODS_H
+#include "LuaEngine.h"
+#include "ElunaTemplate.h"
+
+#include "ElunaIncludes.h"
 
 /***
  * Non-[Player] controlled [Unit]s (i.e. NPCs).
  *
- * Inherits all methods from: [Object], [WorldObject], [Unit]
+ * Inherits all methods from: [ElunaBase], [Object], [WorldObject], [Unit]
  */
 namespace LuaCreature
 {
@@ -20,8 +22,9 @@ namespace LuaCreature
      *
      * @return bool reputationDisabled
      */
-    int IsReputationGainDisabled(lua_State* L, Creature* creature)
+    int IsReputationGainDisabled(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->IsReputationGainDisabled());
         return 1;
     }
@@ -32,8 +35,9 @@ namespace LuaCreature
      *
      * @return bool regeneratesHealth
      */
-    int CanRegenerateHealth(lua_State* L, Creature* creature)
+    int CanRegenerateHealth(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, creature->IsRegeneratingHealth());
 #else
@@ -49,8 +53,9 @@ namespace LuaCreature
      * @param uint32 questID : the ID of a [Quest]
      * @return bool completesQuest
      */
-    int CanCompleteQuest(lua_State* L, Creature* creature)
+    int CanCompleteQuest(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 quest_id = Eluna::CHECKVAL<uint32>(L, 2);
 
 #ifndef TRINITY
@@ -68,8 +73,9 @@ namespace LuaCreature
      * @param bool mustBeDead = false : if `true`, only returns `true` if the [Creature] is also dead. Otherwise, it must be alive.
      * @return bool targetable
      */
-    int IsTargetableForAttack(lua_State* L, Creature* creature)
+    int IsTargetableForAttack(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         bool mustBeDead = Eluna::CHECKVAL<bool>(L, 2, false);
 
 #ifdef MANGOS
@@ -89,8 +95,9 @@ namespace LuaCreature
      * @param bool checkFaction = true : if `true`, the [Creature] must be the same faction as `friend` to assist
      * @return bool canAssist
      */
-    int CanAssistTo(lua_State* L, Creature* creature)
+    int CanAssistTo(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Unit* u = Eluna::CHECKOBJ<Unit>(L, 2);
         Unit* enemy = Eluna::CHECKOBJ<Unit>(L, 3);
         bool checkfaction = Eluna::CHECKVAL<bool>(L, 4, true);
@@ -105,8 +112,9 @@ namespace LuaCreature
      *
      * @return bool searchedForAssistance
      */
-    int HasSearchedAssistance(lua_State* L, Creature* creature)
+    int HasSearchedAssistance(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->HasSearchedAssistance());
         return 1;
     }
@@ -117,8 +125,9 @@ namespace LuaCreature
      *
      * @return bool tapped
      */
-    int IsTappedBy(lua_State* L, Creature* creature)
+    int IsTappedBy(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Player* player = Eluna::CHECKOBJ<Player>(L, 2);
 
 #ifdef MANGOS
@@ -135,8 +144,9 @@ namespace LuaCreature
      *
      * @return bool hasLootRecipient
      */
-    int HasLootRecipient(lua_State* L, Creature* creature)
+    int HasLootRecipient(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, creature->HasLootRecipient());
 #else
@@ -151,8 +161,9 @@ namespace LuaCreature
      *
      * @return bool canAggro
      */
-    int CanAggro(lua_State* L, Creature* creature)
+    int CanAggro(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifdef TRINITY
         Eluna::Push(L, !creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC));
 #else
@@ -168,8 +179,9 @@ namespace LuaCreature
      *
      * @return bool canSwim
      */
-    int CanSwim(lua_State* L, Creature* creature)
+    int CanSwim(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->CanSwim());
         return 1;
     }
@@ -180,8 +192,9 @@ namespace LuaCreature
      *
      * @return bool canWalk
      */
-    int CanWalk(lua_State* L, Creature* creature)
+    int CanWalk(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->CanWalk());
         return 1;
     }
@@ -192,8 +205,9 @@ namespace LuaCreature
      *
      * @return bool inEvadeMode
      */
-    int IsInEvadeMode(lua_State* L, Creature* creature)
+    int IsInEvadeMode(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->IsInEvadeMode());
         return 1;
     }
@@ -204,8 +218,9 @@ namespace LuaCreature
      *
      * @return bool isElite
      */
-    int IsElite(lua_State* L, Creature* creature)
+    int IsElite(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, creature->IsElite());
 #else
@@ -220,8 +235,9 @@ namespace LuaCreature
      *
      * @return bool isGuard
      */
-    int IsGuard(lua_State* L, Creature* creature)
+    int IsGuard(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->IsGuard());
         return 1;
     }
@@ -232,8 +248,9 @@ namespace LuaCreature
      *
      * @return bool isCivilian
      */
-    int IsCivilian(lua_State* L, Creature* creature)
+    int IsCivilian(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->IsCivilian());
         return 1;
     }
@@ -244,8 +261,9 @@ namespace LuaCreature
      *
      * @return bool isLeader
      */
-    int IsRacialLeader(lua_State* L, Creature* creature)
+    int IsRacialLeader(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->IsRacialLeader());
         return 1;
     }
@@ -256,8 +274,9 @@ namespace LuaCreature
      *
      * @return bool isWorldBoss
      */
-    int IsWorldBoss(lua_State* L, Creature* creature)
+    int IsWorldBoss(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, creature->IsWorldBoss());
 #else
@@ -273,8 +292,9 @@ namespace LuaCreature
      * @param uint32 spellId : the ID of a [Spell]
      * @return bool hasCooldown
      */
-    int HasCategoryCooldown(lua_State* L, Creature* creature)
+    int HasCategoryCooldown(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 spell = Eluna::CHECKVAL<uint32>(L, 2);
 
 #ifdef TRINITY
@@ -295,8 +315,9 @@ namespace LuaCreature
      * @param uint32 spellId : the ID of a [Spell]
      * @return bool hasSpell
      */
-    int HasSpell(lua_State* L, Creature* creature)
+    int HasSpell(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 id = Eluna::CHECKVAL<uint32>(L, 2);
 
         Eluna::Push(L, creature->HasSpell(id));
@@ -310,8 +331,9 @@ namespace LuaCreature
      * @param uint32 questId : the ID of a [Quest]
      * @return bool hasQuest
      */
-    int HasQuest(lua_State* L, Creature* creature)
+    int HasQuest(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 questId = Eluna::CHECKVAL<uint32>(L, 2);
 
 #ifndef TRINITY
@@ -329,8 +351,9 @@ namespace LuaCreature
      * @param uint32 spellId : the ID of a [Spell]
      * @return bool hasCooldown
      */
-    int HasSpellCooldown(lua_State* L, Creature* creature)
+    int HasSpellCooldown(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 spellId = Eluna::CHECKVAL<uint32>(L, 2);
 
 #ifdef TRINITY
@@ -347,8 +370,9 @@ namespace LuaCreature
      *
      * @return bool canFly
      */
-    int CanFly(lua_State* L, Creature* creature)
+    int CanFly(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->CanFly());
         return 1;
     }
@@ -360,8 +384,9 @@ namespace LuaCreature
      *
      * @return bool canFly
      */
-    int IsTrigger(lua_State* L, Creature* creature)
+    int IsTrigger(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->IsTrigger());
         return 1;
     }
@@ -371,8 +396,9 @@ namespace LuaCreature
      *
      * @return bool isDamagedEnough
      */
-    int IsDamageEnoughForLootingAndReward(lua_State* L, Creature* creature)
+    int IsDamageEnoughForLootingAndReward(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->IsDamageEnoughForLootingAndReward());
         return 1;
     }
@@ -385,8 +411,9 @@ namespace LuaCreature
      * @param [Unit] target
      * @param bool force = true : force [Creature] to attack
      */
-    int CanStartAttack(lua_State* L, Creature* creature) // TODO: Implement core side
+    int CanStartAttack(lua_State* L) // TODO: Implement core side
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Unit* target = Eluna::CHECKOBJ<Unit>(L, 2);
         bool force = Eluna::CHECKVAL<bool>(L, 3, true);
 
@@ -400,8 +427,9 @@ namespace LuaCreature
      * @param uint16 lootMode
      * @return bool hasLootMode
      */
-    int HasLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    int HasLootMode(lua_State* L) // TODO: Implement LootMode features
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint16 lootMode = Eluna::CHECKVAL<uint16>(L, 2);
 
         Eluna::Push(L, creature->HasLootMode(lootMode));
@@ -417,8 +445,9 @@ namespace LuaCreature
      *
      * @return uint32 respawnDelay : the respawn delay, in seconds
      */
-    int GetRespawnDelay(lua_State* L, Creature* creature)
+    int GetRespawnDelay(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetRespawnDelay());
         return 1;
     }
@@ -429,8 +458,9 @@ namespace LuaCreature
      *
      * @return float wanderRadius
      */
-    int GetWanderRadius(lua_State* L, Creature* creature)
+    int GetWanderRadius(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetRespawnRadius());
         return 1;
     }
@@ -441,8 +471,9 @@ namespace LuaCreature
      *
      * @return uint32 pathId
      */
-    int GetWaypointPath(lua_State* L, Creature* creature)
+    int GetWaypointPath(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetWaypointPath());
         return 1;
     }
@@ -453,8 +484,9 @@ namespace LuaCreature
      *
      * @return uint32 wpId
      */
-    int GetCurrentWaypointId(lua_State* L, Creature* creature)
+    int GetCurrentWaypointId(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifdef TRINITY
         Eluna::Push(L, creature->GetCurrentWaypointID());
 #else
@@ -468,8 +500,9 @@ namespace LuaCreature
      *
      * @return [MovementGeneratorType] defaultMovementType
      */
-    int GetDefaultMovementType(lua_State* L, Creature* creature)
+    int GetDefaultMovementType(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetDefaultMovementType());
         return 1;
     }
@@ -480,8 +513,9 @@ namespace LuaCreature
      * @param [Unit] target
      * @return float aggroRange
      */
-    int GetAggroRange(lua_State* L, Creature* creature)
+    int GetAggroRange(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Unit* target = Eluna::CHECKOBJ<Unit>(L, 2);
 
 #ifndef TRINITY
@@ -503,8 +537,9 @@ namespace LuaCreature
      * @param [Unit] target
      * @return float attackDistance
      */
-    int GetAttackDistance(lua_State* L, Creature* creature)
+    int GetAttackDistance(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Unit* target = Eluna::CHECKOBJ<Unit>(L, 2);
 
         Eluna::Push(L, creature->GetAttackDistance(target));
@@ -516,8 +551,9 @@ namespace LuaCreature
      *
      * @return [Group] lootRecipientGroup : the group or `nil`
      */
-    int GetLootRecipientGroup(lua_State* L, Creature* creature)
+    int GetLootRecipientGroup(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, creature->GetGroupLootRecipient());
 #else
@@ -531,8 +567,9 @@ namespace LuaCreature
      *
      * @return [Player] lootRecipient : the player or `nil`
      */
-    int GetLootRecipient(lua_State* L, Creature* creature)
+    int GetLootRecipient(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetLootRecipient());
         return 1;
     }
@@ -546,8 +583,9 @@ namespace LuaCreature
      *
      * @return string scriptName
      */
-    int GetScriptName(lua_State* L, Creature* creature)
+    int GetScriptName(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetScriptName());
         return 1;
     }
@@ -561,8 +599,9 @@ namespace LuaCreature
      *
      * @return string AIName
      */
-    int GetAIName(lua_State* L, Creature* creature)
+    int GetAIName(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetAIName());
         return 1;
     }
@@ -575,8 +614,9 @@ namespace LuaCreature
      *
      * @return uint32 scriptID
      */
-    int GetScriptId(lua_State* L, Creature* creature)
+    int GetScriptId(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetScriptId());
         return 1;
     }
@@ -587,8 +627,9 @@ namespace LuaCreature
      * @param uint32 spellID
      * @return uint32 cooldown : the cooldown, in milliseconds
      */
-    int GetCreatureSpellCooldownDelay(lua_State* L, Creature* creature)
+    int GetCreatureSpellCooldownDelay(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 spell = Eluna::CHECKVAL<uint32>(L, 2);
 
 #ifdef TRINITY
@@ -607,8 +648,9 @@ namespace LuaCreature
      *
      * @return uint32 corpseDelay : the delay, in seconds
      */
-    int GetCorpseDelay(lua_State* L, Creature* creature)
+    int GetCorpseDelay(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetCorpseDelay());
         return 1;
     }
@@ -622,8 +664,9 @@ namespace LuaCreature
      * @return float z
      * @return float o
      */
-    int GetHomePosition(lua_State* L, Creature* creature)
+    int GetHomePosition(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         float x, y, z, o;
 #ifndef TRINITY
         creature->GetRespawnCoord(x, y, z, &o);
@@ -647,8 +690,9 @@ namespace LuaCreature
      * @param float z
      * @param float o
      */
-    int SetHomePosition(lua_State* L, Creature* creature)
+    int SetHomePosition(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         float x = Eluna::CHECKVAL<float>(L, 2);
         float y = Eluna::CHECKVAL<float>(L, 3);
         float z = Eluna::CHECKVAL<float>(L, 4);
@@ -689,8 +733,9 @@ namespace LuaCreature
      * @param int32 aura = 0 : if positive, the target must have this [Aura]. If negative, the the target must not have this Aura
      * @return [Unit] target : the target, or `nil`
      */
-    int GetAITarget(lua_State* L, Creature* creature)
+    int GetAITarget(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 targetType = Eluna::CHECKVAL<uint32>(L, 2);
         bool playerOnly = Eluna::CHECKVAL<bool>(L, 3, false);
         uint32 position = Eluna::CHECKVAL<uint32>(L, 4, 0);
@@ -777,8 +822,9 @@ namespace LuaCreature
      *
      * @return table targets
      */
-    int GetAITargets(lua_State* L, Creature* creature)
+    int GetAITargets(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifdef MANGOS
         ThreatList const& threatlist = creature->GetThreatManager().getThreatList();
 #else
@@ -808,8 +854,9 @@ namespace LuaCreature
      *
      * @return int targetsCount
      */
-    int GetAITargetsCount(lua_State* L, Creature* creature)
+    int GetAITargetsCount(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifdef MANGOS
         Eluna::Push(L, creature->GetThreatManager().getThreatList().size());
 #else
@@ -826,8 +873,9 @@ namespace LuaCreature
      *
      * @return [NPCFlags] npcFlags
      */
-    int GetNPCFlags(lua_State* L, Creature* creature)
+    int GetNPCFlags(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetUInt32Value(UNIT_NPC_FLAGS));
         return 1;
     }
@@ -838,16 +886,18 @@ namespace LuaCreature
      *
      * @return uint32 shieldBlockValue
      */
-    int GetShieldBlockValue(lua_State* L, Creature* creature)
+    int GetShieldBlockValue(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetShieldBlockValue());
         return 1;
     }
 #endif
 
 #ifdef TRINITY
-    int GetLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    int GetLootMode(lua_State* L) // TODO: Implement LootMode features
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Eluna::Push(L, creature->GetLootMode());
         return 1;
     }
@@ -858,8 +908,9 @@ namespace LuaCreature
      *
      * @return uint32 dbguid
      */
-    int GetDBTableGUIDLow(lua_State* L, Creature* creature)
+    int GetDBTableGUIDLow(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifdef TRINITY
         Eluna::Push(L, creature->GetSpawnId());
 #else
@@ -874,8 +925,9 @@ namespace LuaCreature
      *
      * @param [NPCFlags] flags
      */
-    int SetNPCFlags(lua_State* L, Creature* creature)
+    int SetNPCFlags(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 flags = Eluna::CHECKVAL<uint32>(L, 2);
 
         creature->SetUInt32Value(UNIT_NPC_FLAGS, flags);
@@ -888,8 +940,9 @@ namespace LuaCreature
      *
      * @param bool enable = true
      */
-    int SetDisableGravity(lua_State* L, Creature* creature)
+    int SetDisableGravity(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         bool enable = Eluna::CHECKVAL<bool>(L, 2, true);
 
 #ifdef TRINITY
@@ -901,8 +954,9 @@ namespace LuaCreature
     }
 
 #ifdef TRINITY
-    int SetLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    int SetLootMode(lua_State* L) // TODO: Implement LootMode features
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint16 lootMode = Eluna::CHECKVAL<uint16>(L, 2);
 
         creature->SetLootMode(lootMode);
@@ -915,8 +969,9 @@ namespace LuaCreature
      *
      * @param [DeathState] deathState
      */
-    int SetDeathState(lua_State* L, Creature* creature)
+    int SetDeathState(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         int32 state = Eluna::CHECKVAL<int32>(L, 2);
 
 #ifndef TRINITY
@@ -932,8 +987,9 @@ namespace LuaCreature
      *
      * @param bool enable = true : `true` to enable walking, `false` for running
      */
-    int SetWalk(lua_State* L, Creature* creature)           // TODO: Move same to Player ?
+    int SetWalk(lua_State* L)           // TODO: Move same to Player ?
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         bool enable = Eluna::CHECKVAL<bool>(L, 2, true);
 
         creature->SetWalk(enable);
@@ -947,8 +1003,9 @@ namespace LuaCreature
      * @param uint32 off_hand : off hand [Item]'s entry
      * @param uint32 ranged : ranged [Item]'s entry
      */
-    int SetEquipmentSlots(lua_State* L, Creature* creature)
+    int SetEquipmentSlots(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 main_hand = Eluna::CHECKVAL<uint32>(L, 2);
         uint32 off_hand = Eluna::CHECKVAL<uint32>(L, 3);
         uint32 ranged = Eluna::CHECKVAL<uint32>(L, 4);
@@ -970,8 +1027,9 @@ namespace LuaCreature
      *
      * @param bool allow = true : `true` to allow aggro, `false` to disable aggro
      */
-    int SetAggroEnabled(lua_State* L, Creature* creature)
+    int SetAggroEnabled(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         bool allow = Eluna::CHECKVAL<bool>(L, 2, true);
 
 #ifdef TRINITY
@@ -994,8 +1052,9 @@ namespace LuaCreature
      *
      * @param bool disable = true : `true` to disable reputation, `false` to enable
      */
-    int SetDisableReputationGain(lua_State* L, Creature* creature)
+    int SetDisableReputationGain(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         bool disable = Eluna::CHECKVAL<bool>(L, 2, true);
 
         creature->SetDisableReputationGain(disable);
@@ -1008,8 +1067,9 @@ namespace LuaCreature
      * This is used by raid bosses to prevent Players from using out-of-combat
      *   actions once the encounter has begun.
      */
-    int SetInCombatWithZone(lua_State* /*L*/, Creature* creature)
+    int SetInCombatWithZone(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         creature->SetInCombatWithZone();
         return 0;
     }
@@ -1019,8 +1079,9 @@ namespace LuaCreature
      *
      * @param float distance
      */
-    int SetWanderRadius(lua_State* L, Creature* creature)
+    int SetWanderRadius(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         float dist = Eluna::CHECKVAL<float>(L, 2);
 
         creature->SetRespawnRadius(dist);
@@ -1032,8 +1093,9 @@ namespace LuaCreature
      *
      * @param uint32 delay : the delay, in seconds
      */
-    int SetRespawnDelay(lua_State* L, Creature* creature)
+    int SetRespawnDelay(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 delay = Eluna::CHECKVAL<uint32>(L, 2);
 
         creature->SetRespawnDelay(delay);
@@ -1045,8 +1107,9 @@ namespace LuaCreature
      *
      * @param [MovementGeneratorType] type
      */
-    int SetDefaultMovementType(lua_State* L, Creature* creature)
+    int SetDefaultMovementType(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         int32 type = Eluna::CHECKVAL<int32>(L, 2);
 
         creature->SetDefaultMovementType((MovementGeneratorType)type);
@@ -1058,8 +1121,9 @@ namespace LuaCreature
      *
      * @param bool enable = true : `true` to disable searching, `false` to allow
      */
-    int SetNoSearchAssistance(lua_State* L, Creature* creature)
+    int SetNoSearchAssistance(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         bool val = Eluna::CHECKVAL<bool>(L, 2, true);
 
         creature->SetNoSearchAssistance(val);
@@ -1071,8 +1135,9 @@ namespace LuaCreature
      *
      * @param bool enable = true : `true` to disable calling for help, `false` to enable
      */
-    int SetNoCallAssistance(lua_State* L, Creature* creature)
+    int SetNoCallAssistance(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         bool val = Eluna::CHECKVAL<bool>(L, 2, true);
 
         creature->SetNoCallAssistance(val);
@@ -1084,8 +1149,9 @@ namespace LuaCreature
      *
      * @param bool enable = true : `true` to enable hovering, `false` to disable
      */
-    int SetHover(lua_State* L, Creature* creature)
+    int SetHover(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         bool enable = Eluna::CHECKVAL<bool>(L, 2, true);
 
 #ifdef TRINITY
@@ -1110,8 +1176,9 @@ namespace LuaCreature
      *
      * @param uint32 delay = 0 : dely to despawn in milliseconds
      */
-    int DespawnOrUnsummon(lua_State* L, Creature* creature)
+    int DespawnOrUnsummon(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 msTimeToDespawn = Eluna::CHECKVAL<uint32>(L, 2, 0);
 
 #ifndef TRINITY
@@ -1125,8 +1192,9 @@ namespace LuaCreature
     /**
      * Respawn this [Creature].
      */
-    int Respawn(lua_State* /*L*/, Creature* creature)
+    int Respawn(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         creature->Respawn();
         return 0;
     }
@@ -1134,8 +1202,9 @@ namespace LuaCreature
     /**
      * Remove this [Creature]'s corpse.
      */
-    int RemoveCorpse(lua_State* /*L*/, Creature* creature)
+    int RemoveCorpse(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         creature->RemoveCorpse();
         return 0;
     }
@@ -1143,8 +1212,9 @@ namespace LuaCreature
     /**
      * Make the [Creature] start following its waypoint path.
      */
-    int MoveWaypoint(lua_State* /*L*/, Creature* creature)
+    int MoveWaypoint(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifndef TRINITY
         creature->GetMotionMaster()->MoveWaypoint();
 #else
@@ -1156,8 +1226,9 @@ namespace LuaCreature
     /**
      * Make the [Creature] call for assistance in combat from other nearby [Creature]s.
      */
-    int CallAssistance(lua_State* /*L*/, Creature* creature)
+    int CallAssistance(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         creature->CallAssistance();
         return 0;
     }
@@ -1167,8 +1238,9 @@ namespace LuaCreature
      *
      * @param float radius
      */
-    int CallForHelp(lua_State* L, Creature* creature)
+    int CallForHelp(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         float radius = Eluna::CHECKVAL<float>(L, 2);
 
         creature->CallForHelp(radius);
@@ -1178,8 +1250,9 @@ namespace LuaCreature
     /**
      * Make the [Creature] flee combat to get assistance from a nearby friendly [Creature].
      */
-    int FleeToGetAssistance(lua_State* /*L*/, Creature* creature)
+    int FleeToGetAssistance(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         creature->DoFleeToGetAssistance();
         return 0;
     }
@@ -1189,8 +1262,9 @@ namespace LuaCreature
      *
      * @param [Unit] target
      */
-    int AttackStart(lua_State* L, Creature* creature)
+    int AttackStart(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         Unit* target = Eluna::CHECKOBJ<Unit>(L, 2);
 
         creature->AI()->AttackStart(target);
@@ -1200,8 +1274,9 @@ namespace LuaCreature
     /**
      * Save the [Creature] in the database.
      */
-    int SaveToDB(lua_State* /*L*/, Creature* creature)
+    int SaveToDB(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         creature->SaveToDB();
         return 0;
     }
@@ -1211,8 +1286,9 @@ namespace LuaCreature
      *
      * This should be called every update cycle for the Creature's AI.
      */
-    int SelectVictim(lua_State* L, Creature* creature)
+    int SelectVictim(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, creature->SelectHostileTarget());
 #else
@@ -1227,8 +1303,9 @@ namespace LuaCreature
      * @param uint32 entry : the Creature ID to transform into
      * @param uint32 dataGUIDLow = 0 : use this Creature's model and equipment instead of the defaults
      */
-    int UpdateEntry(lua_State* L, Creature* creature)
+    int UpdateEntry(lua_State* L)
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint32 entry = Eluna::CHECKVAL<uint32>(L, 2);
         uint32 dataGuidLow = Eluna::CHECKVAL<uint32>(L, 3, 0);
 
@@ -1244,8 +1321,9 @@ namespace LuaCreature
     /**
      * Resets [Creature]'s loot mode to default
      */
-    int ResetLootMode(lua_State* /*L*/, Creature* creature) // TODO: Implement LootMode features
+    int ResetLootMode(lua_State* L) // TODO: Implement LootMode features
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         creature->ResetLootMode();
         return 0;
     }
@@ -1255,8 +1333,9 @@ namespace LuaCreature
      *
      * @param uint16 lootMode
      */
-    int RemoveLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    int RemoveLootMode(lua_State* L) // TODO: Implement LootMode features
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint16 lootMode = Eluna::CHECKVAL<uint16>(L, 2);
 
         creature->RemoveLootMode(lootMode);
@@ -1268,8 +1347,9 @@ namespace LuaCreature
      *
      * @param uint16 lootMode
      */
-    int AddLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    int AddLootMode(lua_State* L) // TODO: Implement LootMode features
     {
+        Creature* creature = Eluna::CHECKOBJ<Creature>(L, 1);
         uint16 lootMode = Eluna::CHECKVAL<uint16>(L, 2);
 
         creature->AddLootMode(lootMode);
@@ -1277,4 +1357,98 @@ namespace LuaCreature
     }
 #endif
 };
+
+ElunaFunction CreatureMethods[] =
+{
+    { ENV_BOTH, "AttackStart", &LuaCreature::AttackStart },
+    { ENV_BOTH, "CallAssistance", &LuaCreature::CallAssistance },
+    { ENV_BOTH, "CallForHelp", &LuaCreature::CallForHelp },
+    { ENV_BOTH, "CanAggro", &LuaCreature::CanAggro },
+    { ENV_BOTH, "CanAssistTo", &LuaCreature::CanAssistTo },
+    { ENV_BOTH, "CanCompleteQuest", &LuaCreature::CanCompleteQuest },
+    { ENV_BOTH, "CanFly", &LuaCreature::CanFly },
+    { ENV_BOTH, "CanRegenerateHealth", &LuaCreature::CanRegenerateHealth },
+    { ENV_BOTH, "CanSwim", &LuaCreature::CanSwim },
+    { ENV_BOTH, "CanWalk", &LuaCreature::CanWalk },
+    { ENV_BOTH, "DespawnOrUnsummon", &LuaCreature::DespawnOrUnsummon },
+    { ENV_BOTH, "FleeToGetAssistance", &LuaCreature::FleeToGetAssistance },
+    { ENV_BOTH, "GetAggroRange", &LuaCreature::GetAggroRange },
+    { ENV_BOTH, "GetAIName", &LuaCreature::GetAIName },
+    { ENV_BOTH, "GetAITarget", &LuaCreature::GetAITarget },
+    { ENV_BOTH, "GetAITargets", &LuaCreature::GetAITargets },
+    { ENV_BOTH, "GetAITargetsCount", &LuaCreature::GetAITargetsCount },
+    { ENV_BOTH, "GetAttackDistance", &LuaCreature::GetAttackDistance },
+    { ENV_BOTH, "GetCorpseDelay", &LuaCreature::GetCorpseDelay },
+    { ENV_BOTH, "GetCreatureSpellCooldownDelay", &LuaCreature::GetCreatureSpellCooldownDelay },
+    { ENV_BOTH, "GetCurrentWaypointId", &LuaCreature::GetCurrentWaypointId },
+    { ENV_BOTH, "GetDBTableGUIDLow", &LuaCreature::GetDBTableGUIDLow },
+    { ENV_BOTH, "GetDefaultMovementType", &LuaCreature::GetDefaultMovementType },
+    { ENV_BOTH, "GetHomePosition", &LuaCreature::GetHomePosition },
+    { ENV_BOTH, "GetLootRecipient", &LuaCreature::GetLootRecipient },
+    { ENV_BOTH, "GetLootRecipientGroup", &LuaCreature::GetLootRecipientGroup },
+    { ENV_BOTH, "GetNPCFlags", &LuaCreature::GetNPCFlags },
+    { ENV_BOTH, "GetRespawnDelay", &LuaCreature::GetRespawnDelay },
+    { ENV_BOTH, "GetScriptId", &LuaCreature::GetScriptId },
+    { ENV_BOTH, "GetScriptName", &LuaCreature::GetScriptName },
+    { ENV_BOTH, "GetWanderRadius", &LuaCreature::GetWanderRadius },
+    { ENV_BOTH, "HasCategoryCooldown", &LuaCreature::HasCategoryCooldown },
+    { ENV_BOTH, "HasLootRecipient", &LuaCreature::HasLootRecipient },
+    { ENV_BOTH, "HasQuest", &LuaCreature::HasQuest },
+    { ENV_BOTH, "HasSearchedAssistance", &LuaCreature::HasSearchedAssistance },
+    { ENV_BOTH, "HasSpell", &LuaCreature::HasSpell },
+    { ENV_BOTH, "HasSpellCooldown", &LuaCreature::HasSpellCooldown },
+    { ENV_BOTH, "IsCivilian", &LuaCreature::IsCivilian },
+    { ENV_BOTH, "IsElite", &LuaCreature::IsElite },
+    { ENV_BOTH, "IsGuard", &LuaCreature::IsGuard },
+    { ENV_BOTH, "IsInEvadeMode", &LuaCreature::IsInEvadeMode },
+    { ENV_BOTH, "IsRacialLeader", &LuaCreature::IsRacialLeader },
+    { ENV_BOTH, "IsReputationGainDisabled", &LuaCreature::IsReputationGainDisabled },
+    { ENV_BOTH, "IsTappedBy", &LuaCreature::IsTappedBy },
+    { ENV_BOTH, "IsTargetableForAttack", &LuaCreature::IsTargetableForAttack },
+    { ENV_BOTH, "IsWorldBoss", &LuaCreature::IsWorldBoss },
+    { ENV_BOTH, "MoveWaypoint", &LuaCreature::MoveWaypoint },
+    { ENV_BOTH, "RemoveCorpse", &LuaCreature::RemoveCorpse },
+    { ENV_BOTH, "Respawn", &LuaCreature::Respawn },
+    { ENV_BOTH, "SaveToDB", &LuaCreature::SaveToDB },
+    { ENV_BOTH, "SelectVictim", &LuaCreature::SelectVictim },
+    { ENV_BOTH, "SetAggroEnabled", &LuaCreature::SetAggroEnabled },
+    { ENV_BOTH, "SetDeathState", &LuaCreature::SetDeathState },
+    { ENV_BOTH, "SetDefaultMovementType", &LuaCreature::SetDefaultMovementType },
+    { ENV_BOTH, "SetDisableGravity", &LuaCreature::SetDisableGravity },
+    { ENV_BOTH, "SetDisableReputationGain", &LuaCreature::SetDisableReputationGain },
+    { ENV_BOTH, "SetEquipmentSlots", &LuaCreature::SetEquipmentSlots },
+    { ENV_BOTH, "SetHomePosition", &LuaCreature::SetHomePosition },
+    { ENV_BOTH, "SetHover", &LuaCreature::SetHover },
+    { ENV_BOTH, "SetInCombatWithZone", &LuaCreature::SetInCombatWithZone },
+    { ENV_BOTH, "SetNoCallAssistance", &LuaCreature::SetNoCallAssistance },
+    { ENV_BOTH, "SetNoSearchAssistance", &LuaCreature::SetNoSearchAssistance },
+    { ENV_BOTH, "SetNPCFlags", &LuaCreature::SetNPCFlags },
+    { ENV_BOTH, "SetRespawnDelay", &LuaCreature::SetRespawnDelay },
+    { ENV_BOTH, "SetWalk", &LuaCreature::SetWalk },
+    { ENV_BOTH, "SetWanderRadius", &LuaCreature::SetWanderRadius },
+    { ENV_BOTH, "UpdateEntry", &LuaCreature::UpdateEntry },
+#ifdef TRINITY
+    { ENV_BOTH, "AddLootMode", &LuaCreature::AddLootMode },
+    { ENV_BOTH, "CanStartAttack", &LuaCreature::CanStartAttack },
+    { ENV_BOTH, "GetLootMode", &LuaCreature::GetLootMode },
+    { ENV_BOTH, "GetWaypointPath", &LuaCreature::GetWaypointPath },
+    { ENV_BOTH, "HasLootMode", &LuaCreature::HasLootMode },
+    { ENV_BOTH, "IsDamageEnoughForLootingAndReward", &LuaCreature::IsDamageEnoughForLootingAndReward },
+    { ENV_BOTH, "IsTrigger", &LuaCreature::IsTrigger },
+    { ENV_BOTH, "RemoveLootMode", &LuaCreature::RemoveLootMode },
+    { ENV_BOTH, "ResetLootMode", &LuaCreature::ResetLootMode },
+    { ENV_BOTH, "SetLootMode", &LuaCreature::SetLootMode },
 #endif
+#ifndef CATA
+    { ENV_BOTH, "GetShieldBlockValue", &LuaCreature::GetShieldBlockValue },
+#endif
+
+    { ENV_NONE, nullptr, nullptr },
+};
+
+ELUNA_TYPE(Creature, false, CreatureMethods, "Unit")
+
+void RegisterTypeCreature(Eluna* E)
+{
+    ElunaTemplate<Creature>::RegisterTypeForState(E);
+}

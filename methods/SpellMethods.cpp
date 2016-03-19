@@ -4,13 +4,15 @@
 * Please see the included DOCS/LICENSE.md for more information
 */
 
-#ifndef SPELLMETHODS_H
-#define SPELLMETHODS_H
+#include "LuaEngine.h"
+#include "ElunaTemplate.h"
+
+#include "ElunaIncludes.h"
 
 /***
  * An instance of a spell, created when the spell is cast by a [Unit].
  *
- * Inherits all methods from: none
+ * Inherits all methods from: [ElunaBase]
  */
 namespace LuaSpell
 {
@@ -19,8 +21,9 @@ namespace LuaSpell
      *
      * @return bool isAutoRepeating
      */
-    int IsAutoRepeat(lua_State* L, Spell* spell)
+    int IsAutoRepeat(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
         Eluna::Push(L, spell->IsAutoRepeat());
         return 1;
     }
@@ -30,8 +33,9 @@ namespace LuaSpell
      *
      * @return [Unit] caster
      */
-    int GetCaster(lua_State* L, Spell* spell)
+    int GetCaster(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
         Eluna::Push(L, spell->GetCaster());
         return 1;
     }
@@ -41,8 +45,9 @@ namespace LuaSpell
      *
      * @return int32 castTime
      */
-    int GetCastTime(lua_State* L, Spell* spell)
+    int GetCastTime(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
         Eluna::Push(L, spell->GetCastTime());
         return 1;
     }
@@ -52,8 +57,9 @@ namespace LuaSpell
      *
      * @return uint32 entryId
      */
-    int GetEntry(lua_State* L, Spell* spell)
+    int GetEntry(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
         Eluna::Push(L, spell->m_spellInfo->Id);
         return 1;
     }
@@ -63,8 +69,9 @@ namespace LuaSpell
      *
      * @return uint32 powerCost
      */
-    int GetPowerCost(lua_State* L, Spell* spell)
+    int GetPowerCost(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
         Eluna::Push(L, spell->GetPowerCost());
         return 1;
     }
@@ -74,8 +81,9 @@ namespace LuaSpell
      *
      * @return int32 duration
      */
-    int GetDuration(lua_State* L, Spell* spell)
+    int GetDuration(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, GetSpellDuration(spell->m_spellInfo));
 #else
@@ -91,8 +99,9 @@ namespace LuaSpell
      * @return float y : y coordinate of the [Spell]
      * @return float z : z coordinate of the [Spell]
      */
-    int GetTargetDest(lua_State* L, Spell* spell)
+    int GetTargetDest(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
 #ifndef TRINITY
         if (!(spell->m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
             return 3;
@@ -122,15 +131,16 @@ namespace LuaSpell
      *
      * @return [Object] target
      */
-    int GetTarget(lua_State* L, Spell* spell)
+    int GetTarget(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
 #ifndef TRINITY
         if (GameObject* target = spell->m_targets.getGOTarget())
             Eluna::Push(L, target);
         else if (Item* target = spell->m_targets.getItemTarget())
             Eluna::Push(L, target);
-        else if (Corpse* target = spell->GetCaster()->GetMap()->GetCorpse(spell->m_targets.getCorpseTargetGuid()))
-            Eluna::Push(L, target);
+        //else if (Corpse* target = spell->GetCaster()->GetMap()->GetCorpse(spell->m_targets.getCorpseTargetGuid()))
+        //    Eluna::Push(L, target);
         else if (Unit* target = spell->m_targets.getUnitTarget())
             Eluna::Push(L, target);
 #else
@@ -138,8 +148,8 @@ namespace LuaSpell
             Eluna::Push(L, target);
         else if (Item* target = spell->m_targets.GetItemTarget())
             Eluna::Push(L, target);
-        else if (Corpse* target = spell->m_targets.GetCorpseTarget())
-            Eluna::Push(L, target);
+        //else if (Corpse* target = spell->m_targets.GetCorpseTarget())
+        //    Eluna::Push(L, target);
         else if (Unit* target = spell->m_targets.GetUnitTarget())
             Eluna::Push(L, target);
         else if (WorldObject* target = spell->m_targets.GetObjectTarget())
@@ -153,8 +163,9 @@ namespace LuaSpell
      *
      * @param bool repeat : set variable to 'true' for spell to automatically repeat
      */
-    int SetAutoRepeat(lua_State* L, Spell* spell)
+    int SetAutoRepeat(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
         bool repeat = Eluna::CHECKVAL<bool>(L, 2);
         spell->SetAutoRepeat(repeat);
         return 0;
@@ -165,8 +176,9 @@ namespace LuaSpell
      *
      * @param bool skipCheck = false : skips initial checks to see if the [Spell] can be casted or not, this is optional
      */
-    int Cast(lua_State* L, Spell* spell)
+    int Cast(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
         bool skipCheck = Eluna::CHECKVAL<bool>(L, 2, false);
         spell->cast(skipCheck);
         return 0;
@@ -175,8 +187,9 @@ namespace LuaSpell
     /**
      * Cancels the [Spell].
      */
-    int Cancel(lua_State* /*L*/, Spell* spell)
+    int Cancel(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
         spell->cancel();
         return 0;
     }
@@ -184,10 +197,35 @@ namespace LuaSpell
     /**
      * Finishes the [Spell].
      */
-    int Finish(lua_State* /*L*/, Spell* spell)
+    int Finish(lua_State* L)
     {
+        Spell* spell = Eluna::CHECKOBJ<Spell>(L, 1);
         spell->finish();
         return 0;
     }
 };
-#endif
+
+ElunaFunction SpellMethods[] =
+{
+    { ENV_BOTH, "Cancel", &LuaSpell::Cancel },
+    { ENV_BOTH, "Cast", &LuaSpell::Cast },
+    { ENV_BOTH, "Finish", &LuaSpell::Finish },
+    { ENV_BOTH, "GetCaster", &LuaSpell::GetCaster },
+    { ENV_BOTH, "GetCastTime", &LuaSpell::GetCastTime },
+    { ENV_BOTH, "GetDuration", &LuaSpell::GetDuration },
+    { ENV_BOTH, "GetEntry", &LuaSpell::GetEntry },
+    { ENV_BOTH, "GetPowerCost", &LuaSpell::GetPowerCost },
+    { ENV_BOTH, "GetTarget", &LuaSpell::GetTarget },
+    { ENV_BOTH, "GetTargetDest", &LuaSpell::GetTargetDest },
+    { ENV_BOTH, "IsAutoRepeat", &LuaSpell::IsAutoRepeat },
+    { ENV_BOTH, "SetAutoRepeat", &LuaSpell::SetAutoRepeat },
+
+    { ENV_NONE, nullptr, nullptr },
+};
+
+ELUNA_TYPE(Spell, false, SpellMethods, "ElunaBase")
+
+void RegisterTypeSpell(Eluna* E)
+{
+    ElunaTemplate<Spell>::RegisterTypeForState(E);
+}

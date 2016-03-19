@@ -4,13 +4,16 @@
 * Please see the included DOCS/LICENSE.md for more information
 */
 
-#ifndef VEHICLEMETHODS_H
-#define VEHICLEMETHODS_H
 #ifndef CLASSIC
 #ifndef TBC
 
+#include "LuaEngine.h"
+#include "ElunaTemplate.h"
+
+#include "ElunaIncludes.h"
+
 /***
- * Inherits all methods from: none
+ * Inherits all methods from: [ElunaBase]
  */
 namespace LuaVehicle
 {
@@ -20,8 +23,9 @@ namespace LuaVehicle
      * @param [Unit] passenger
      * @return bool isOnBoard
      */
-    int IsOnBoard(lua_State* L, Vehicle* vehicle)
+    int IsOnBoard(lua_State* L)
     {
+        Vehicle* vehicle = Eluna::CHECKOBJ<Vehicle>(L, 1);
         Unit* passenger = Eluna::CHECKOBJ<Unit>(L, 2);
 #ifndef TRINITY
         Eluna::Push(L, vehicle->HasOnBoard(passenger));
@@ -36,8 +40,9 @@ namespace LuaVehicle
      *
      * @return [Unit] owner
      */
-    int GetOwner(lua_State* L, Vehicle* vehicle)
+    int GetOwner(lua_State* L)
     {
+        Vehicle* vehicle = Eluna::CHECKOBJ<Vehicle>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, vehicle->GetOwner());
 #else
@@ -51,8 +56,9 @@ namespace LuaVehicle
      *
      * @return uint32 entry
      */
-    int GetEntry(lua_State* L, Vehicle* vehicle)
+    int GetEntry(lua_State* L)
     {
+        Vehicle* vehicle = Eluna::CHECKOBJ<Vehicle>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, vehicle->GetVehicleEntry()->m_ID);
 #else
@@ -67,8 +73,9 @@ namespace LuaVehicle
      * @param int8 seat
      * @return [Unit] passenger
      */
-    int GetPassenger(lua_State* L, Vehicle* vehicle)
+    int GetPassenger(lua_State* L)
     {
+        Vehicle* vehicle = Eluna::CHECKOBJ<Vehicle>(L, 1);
         int8 seatId = Eluna::CHECKVAL<int8>(L, 2);
         Eluna::Push(L, vehicle->GetPassenger(seatId));
         return 1;
@@ -80,8 +87,9 @@ namespace LuaVehicle
      * @param [Unit] passenger
      * @param int8 seat
      */
-    int AddPassenger(lua_State* L, Vehicle* vehicle)
+    int AddPassenger(lua_State* L)
     {
+        Vehicle* vehicle = Eluna::CHECKOBJ<Vehicle>(L, 1);
         Unit* passenger = Eluna::CHECKOBJ<Unit>(L, 2);
         int8 seatId = Eluna::CHECKVAL<int8>(L, 3);
 #ifndef TRINITY
@@ -98,8 +106,9 @@ namespace LuaVehicle
      *
      * @param [Unit] passenger
      */
-    int RemovePassenger(lua_State* L, Vehicle* vehicle)
+    int RemovePassenger(lua_State* L)
     {
+        Vehicle* vehicle = Eluna::CHECKOBJ<Vehicle>(L, 1);
         Unit* passenger = Eluna::CHECKOBJ<Unit>(L, 2);
 #ifndef TRINITY
         vehicle->UnBoard(passenger, false);
@@ -110,6 +119,24 @@ namespace LuaVehicle
     }
 }
 
+ElunaFunction VehicleMethods[] =
+{
+    { ENV_BOTH, "AddPassenger", &LuaVehicle::AddPassenger },
+    { ENV_BOTH, "GetEntry", &LuaVehicle::GetEntry },
+    { ENV_BOTH, "GetOwner", &LuaVehicle::GetOwner },
+    { ENV_BOTH, "GetPassenger", &LuaVehicle::GetPassenger },
+    { ENV_BOTH, "IsOnBoard", &LuaVehicle::IsOnBoard },
+    { ENV_BOTH, "RemovePassenger", &LuaVehicle::RemovePassenger },
+
+    { ENV_NONE, nullptr, nullptr },
+};
+
+ELUNA_TYPE(Vehicle, false, VehicleMethods, "ElunaBase")
+
+void RegisterTypeVehicle(Eluna* E)
+{
+    ElunaTemplate<Vehicle>::RegisterTypeForState(E);
+}
+
 #endif // CLASSIC
 #endif // TBC
-#endif // VEHICLEMETHODS_H

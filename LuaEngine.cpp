@@ -43,8 +43,6 @@ std::thread::id const Eluna::main_thread_id(std::this_thread::get_id());
 std::atomic<bool> Eluna::reload(false);
 std::atomic<bool> Eluna::initialized(false);
 
-extern void RegisterFunctions(Eluna* E);
-
 Eluna* Eluna::GetGEluna(const char* info)
 {
     if (main_thread_id != std::this_thread::get_id())
@@ -263,8 +261,8 @@ void Eluna::OpenLua()
 
     // open additional lua libraries
 
-    // Register methods and functions
-    RegisterFunctions(this);
+    // Register all classes
+    RegisterTemplates(this);
 
     // Create hidden table with weak values
     lua_newtable(L);
@@ -685,15 +683,19 @@ void Eluna::Push(lua_State* luastate, const char* str)
 {
     lua_pushstring(luastate, str);
 }
-void Eluna::Push(lua_State* luastate, Pet const* pet)
+void Eluna::Push(lua_State* luastate, char* str)
+{
+    lua_pushstring(luastate, str);
+}
+void Eluna::Push(lua_State* luastate, Pet* pet)
 {
     Push<Creature>(luastate, pet);
 }
-void Eluna::Push(lua_State* luastate, TempSummon const* summon)
+void Eluna::Push(lua_State* luastate, TempSummon* summon)
 {
     Push<Creature>(luastate, summon);
 }
-void Eluna::Push(lua_State* luastate, Unit const* unit)
+void Eluna::Push(lua_State* luastate, Unit* unit)
 {
     if (!unit)
     {
@@ -712,7 +714,7 @@ void Eluna::Push(lua_State* luastate, Unit const* unit)
             ElunaTemplate<Unit>::Push(luastate, unit);
     }
 }
-void Eluna::Push(lua_State* luastate, WorldObject const* obj)
+void Eluna::Push(lua_State* luastate, WorldObject* obj)
 {
     if (!obj)
     {
@@ -734,7 +736,7 @@ void Eluna::Push(lua_State* luastate, WorldObject const* obj)
             ElunaTemplate<WorldObject>::Push(luastate, obj);
     }
 }
-void Eluna::Push(lua_State* luastate, Object const* obj)
+void Eluna::Push(lua_State* luastate, Object* obj)
 {
     if (!obj)
     {
@@ -879,7 +881,7 @@ ElunaObject* Eluna::CHECKTYPE(lua_State* luastate, int narg, const char* tname, 
 
     ElunaObject** ptrHold = static_cast<ElunaObject**>(lua_touserdata(luastate, narg));
 
-    if (!ptrHold || (tname && (*ptrHold)->GetTypeName() != tname))
+    if (!ptrHold || (tname && std::strcmp((*ptrHold)->GetTypeName(), tname)))
     {
         if (error)
         {

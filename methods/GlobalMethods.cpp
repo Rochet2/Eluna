@@ -4,10 +4,14 @@
 * Please see the included DOCS/LICENSE.md for more information
 */
 
-#ifndef GLOBALMETHODS_H
-#define GLOBALMETHODS_H
+#include "LuaEngine.h"
+#include "ElunaTemplate.h"
+
+#include "ElunaIncludes.h"
 
 #include "BindingMap.h"
+#include "ElunaEventMgr.h"
+#include "lmarshal.h"
 
 /***
  * These functions can be used anywhere at any time, including at start-up.
@@ -99,7 +103,7 @@ namespace LuaGlobalFunctions
     {
         uint32 questId = Eluna::CHECKVAL<uint32>(L, 1);
 
-        Eluna::Push(L, eObjectMgr->GetQuestTemplate(questId));
+        Eluna::Push(L, new Quest(*eObjectMgr->GetQuestTemplate(questId)));
         return 1;
     }
 
@@ -475,10 +479,10 @@ namespace LuaGlobalFunctions
         Eluna* E = Eluna::GetEluna(L);
         ElunaEnvironments env = Hooks::GetEventEnv(hookcontainer, event_type);
         if (!(env & E->env))
-            return luaL_error(L, "Unknown Event type (event_type: %s, shots: %u, event_env: %i, state_env: %i)", event_type.c_str(), shots, env, E->env);
+            return luaL_error(L, "Unknown Event type (event_type: %s, shots: %d, event_env: %d, state_env: %d)", event_type.c_str(), shots, env, E->env);
 
         // get function ref
-        lua_pushvalue(L, 3);
+        lua_pushvalue(L, 2);
         int functionRef = luaL_ref(L, LUA_REGISTRYINDEX);
         if (functionRef == LUA_REFNIL)
             return luaL_argerror(L, 3, "unable to make a ref to function");
@@ -502,7 +506,7 @@ namespace LuaGlobalFunctions
         Eluna* E = Eluna::GetEluna(L);
         ElunaEnvironments env = Hooks::GetEventEnv(Hooks::TypeSpecific<T>::events, event_type);
         if (!(env & E->env))
-            return luaL_error(L, "Unknown EntryEvent type (bindtype: %i, id: %u, event_type: %s, shots: %u, event_env: %i, state_env: %i)", T, id, event_type.c_str(), shots, env, E->env);
+            return luaL_error(L, "Unknown EntryEvent type (bindtype: %d, id: %d, event_type: %s, shots: %d, event_env: %d, state_env: %d)", T, id, event_type.c_str(), shots, env, E->env);
 
         // make function ref
         lua_pushvalue(L, 3);
@@ -531,7 +535,7 @@ namespace LuaGlobalFunctions
         {
             std::ostringstream oss;
             oss << guid;
-            return luaL_error(L, "Unknown GuidEvent type (bindtype: %i, guid: %s, event_type: %s, shots: %u, event_env: %i, state_env: %i)", T, oss.str().c_str(), event_type.c_str(), shots, env, E->env);
+            return luaL_error(L, "Unknown GuidEvent type (bindtype: %d, guid: %s, event_type: %s, shots: %d, event_env: %d, state_env: %d)", T, oss.str().c_str(), event_type.c_str(), shots, env, E->env);
         }
 
         // make function ref
@@ -1986,7 +1990,7 @@ namespace LuaGlobalFunctions
      * @proto (entry)
      * @proto (entry, event_type)
      * @param uint32 entry : the ID of one or more [Creature]s whose handlers will be cleared
-     * @param std::string event_type : the event whose handlers will be cleared, see [Global:RegisterCreatureEvent]
+     * @param string event_type : the event whose handlers will be cleared, see [Global:RegisterCreatureEvent]
      */
     int ClearCreatureEvents(lua_State* L)
     {
@@ -2007,7 +2011,7 @@ namespace LuaGlobalFunctions
      * @proto (entry, event_type)
      * @param uint64 guid : the GUID of a single [Creature] whose handlers will be cleared
      * @param uint32 instance_id : the instance ID of a single [Creature] whose handlers will be cleared
-     * @param std::string event_type : the event whose handlers will be cleared, see [Global:RegisterCreatureEvent]
+     * @param string event_type : the event whose handlers will be cleared, see [Global:RegisterCreatureEvent]
      */
     int ClearCreatureGuidEvents(lua_State* L)
     {
@@ -2027,7 +2031,7 @@ namespace LuaGlobalFunctions
      * @proto (entry)
      * @proto (entry, event_type)
      * @param uint32 entry : the ID of a [GameObject] whose handlers will be cleared
-     * @param std::string event_type : the event whose handlers will be cleared, see [Global:RegisterGameObjectEvent]
+     * @param string event_type : the event whose handlers will be cleared, see [Global:RegisterGameObjectEvent]
      */
     int ClearGameObjectEvents(lua_State* L)
     {
@@ -2047,7 +2051,7 @@ namespace LuaGlobalFunctions
      * @proto (entry)
      * @proto (entry, event_type)
      * @param uint32 entry : the ID of an [Item] whose handlers will be cleared
-     * @param std::string event_type : the event whose handlers will be cleared, see [Global:RegisterItemEvent]
+     * @param string event_type : the event whose handlers will be cleared, see [Global:RegisterItemEvent]
      */
     int ClearItemEvents(lua_State* L)
     {
@@ -2064,7 +2068,7 @@ namespace LuaGlobalFunctions
      * @proto (entry)
      * @proto (entry, event_type)
      * @param uint32 entry : the low GUID of a [Player] whose handlers will be cleared
-     * @param std::string event_type : the event whose handlers will be cleared, see [Global:RegisterPlayerGossipEvent]
+     * @param string event_type : the event whose handlers will be cleared, see [Global:RegisterPlayerGossipEvent]
      */
     int ClearPlayerGossipEvents(lua_State* L)
     {
@@ -2080,7 +2084,7 @@ namespace LuaGlobalFunctions
      *
      * @proto ()
      * @proto (event_type)
-     * @param std::string event_type : the event whose handlers will be cleared, see [Global:RegisterServerEvent]
+     * @param string event_type : the event whose handlers will be cleared, see [Global:RegisterServerEvent]
      */
     int ClearServerEvents(lua_State* L)
     {
@@ -2106,7 +2110,7 @@ namespace LuaGlobalFunctions
      * @proto (map_id)
      * @proto (map_id, event_type)
      * @param uint32 map_id : the ID of a [Map]
-     * @param std::string event_type : the event whose handlers will be cleared, see [Global:RegisterPlayerGossipEvent]
+     * @param string event_type : the event whose handlers will be cleared, see [Global:RegisterPlayerGossipEvent]
      */
     int ClearMapEvents(lua_State* L)
     {
@@ -2236,4 +2240,92 @@ namespace LuaGlobalFunctions
     }
 }
 
-#endif
+ElunaFunction GlobalMethods[] =
+{
+    { ENV_BOTH, "ClearCreatureEvents", &LuaGlobalFunctions::ClearCreatureEvents },
+    { ENV_BOTH, "ClearCreatureGuidEvents", &LuaGlobalFunctions::ClearCreatureGuidEvents },
+    { ENV_BOTH, "ClearGameObjectEvents", &LuaGlobalFunctions::ClearGameObjectEvents },
+    { ENV_BOTH, "ClearItemEvents", &LuaGlobalFunctions::ClearItemEvents },
+    { ENV_BOTH, "ClearMapEvents", &LuaGlobalFunctions::ClearMapEvents },
+    { ENV_BOTH, "ClearPlayerGossipEvents", &LuaGlobalFunctions::ClearPlayerGossipEvents },
+    { ENV_BOTH, "ClearServerEvents", &LuaGlobalFunctions::ClearServerEvents },
+    { ENV_BOTH, "RegisterCreatureEvent", &LuaGlobalFunctions::RegisterCreatureEvent },
+    { ENV_BOTH, "RegisterCreatureGuidEvent", &LuaGlobalFunctions::RegisterCreatureGuidEvent },
+    { ENV_BOTH, "RegisterGameObjectEvent", &LuaGlobalFunctions::RegisterGameObjectEvent },
+    { ENV_BOTH, "RegisterItemEvent", &LuaGlobalFunctions::RegisterItemEvent },
+    { ENV_BOTH, "RegisterMapEvent", &LuaGlobalFunctions::RegisterMapEvent },
+    { ENV_BOTH, "RegisterPlayerGossipEvent", &LuaGlobalFunctions::RegisterPlayerGossipEvent },
+    { ENV_BOTH, "RegisterServerEvent", &LuaGlobalFunctions::RegisterServerEvent },
+    
+    { ENV_BOTH, "AuthDBExecute", &LuaGlobalFunctions::AuthDBExecute },
+    { ENV_BOTH, "AuthDBQuery", &LuaGlobalFunctions::AuthDBQuery },
+    { ENV_BOTH, "bit_and", &LuaGlobalFunctions::bit_and },
+    { ENV_BOTH, "bit_lshift", &LuaGlobalFunctions::bit_lshift },
+    { ENV_BOTH, "bit_not", &LuaGlobalFunctions::bit_not },
+    { ENV_BOTH, "bit_or", &LuaGlobalFunctions::bit_or },
+    { ENV_BOTH, "bit_rshift", &LuaGlobalFunctions::bit_rshift },
+    { ENV_BOTH, "bit_xor", &LuaGlobalFunctions::bit_xor },
+    { ENV_BOTH, "CharDBExecute", &LuaGlobalFunctions::CharDBExecute },
+    { ENV_BOTH, "CharDBQuery", &LuaGlobalFunctions::CharDBQuery },
+    { ENV_BOTH, "CreateLuaEvent", &LuaGlobalFunctions::CreateLuaEvent },
+    { ENV_BOTH, "CreatePacket", &LuaGlobalFunctions::CreatePacket },
+    { ENV_BOTH, "GetAreaName", &LuaGlobalFunctions::GetAreaName },
+    { ENV_BOTH, "GetCoreExpansion", &LuaGlobalFunctions::GetCoreExpansion },
+    { ENV_BOTH, "GetCoreName", &LuaGlobalFunctions::GetCoreName },
+    { ENV_BOTH, "GetCoreVersion", &LuaGlobalFunctions::GetCoreVersion },
+    { ENV_BOTH, "GetCurrTime", &LuaGlobalFunctions::GetCurrTime },
+    { ENV_BOTH, "GetGameTime", &LuaGlobalFunctions::GetGameTime },
+    { ENV_BOTH, "GetGUIDEntry", &LuaGlobalFunctions::GetGUIDEntry },
+    { ENV_BOTH, "GetGUIDLow", &LuaGlobalFunctions::GetGUIDLow },
+    { ENV_BOTH, "GetGUIDType", &LuaGlobalFunctions::GetGUIDType },
+    { ENV_BOTH, "GetItemGUID", &LuaGlobalFunctions::GetItemGUID },
+    { ENV_BOTH, "GetItemLink", &LuaGlobalFunctions::GetItemLink },
+    { ENV_BOTH, "GetLuaEngine", &LuaGlobalFunctions::GetLuaEngine },
+    { ENV_BOTH, "GetMap", &LuaGlobalFunctions::GetMap },
+    { ENV_BOTH, "GetObjectGUID", &LuaGlobalFunctions::GetObjectGUID },
+    { ENV_BOTH, "GetPlayerGUID", &LuaGlobalFunctions::GetPlayerGUID },
+    { ENV_BOTH, "GetQuest", &LuaGlobalFunctions::GetQuest },
+    { ENV_BOTH, "GetTimeDiff", &LuaGlobalFunctions::GetTimeDiff },
+    { ENV_BOTH, "GetUnitGUID", &LuaGlobalFunctions::GetUnitGUID },
+    { ENV_BOTH, "IsBagPos", &LuaGlobalFunctions::IsBagPos },
+    { ENV_BOTH, "IsBankPos", &LuaGlobalFunctions::IsBankPos },
+    { ENV_BOTH, "IsEquipmentPos", &LuaGlobalFunctions::IsEquipmentPos },
+    { ENV_BOTH, "IsInventoryPos", &LuaGlobalFunctions::IsInventoryPos },
+    { ENV_BOTH, "PrintDebug", &LuaGlobalFunctions::PrintDebug },
+    { ENV_BOTH, "PrintError", &LuaGlobalFunctions::PrintError },
+    { ENV_BOTH, "PrintInfo", &LuaGlobalFunctions::PrintInfo },
+    { ENV_BOTH, "ReloadEluna", &LuaGlobalFunctions::ReloadEluna },
+    { ENV_BOTH, "RemoveEventById", &LuaGlobalFunctions::RemoveEventById },
+    { ENV_BOTH, "RemoveEvents", &LuaGlobalFunctions::RemoveEvents },
+    { ENV_BOTH, "SaveAllPlayers", &LuaGlobalFunctions::SaveAllPlayers },
+    { ENV_BOTH, "SendMail", &LuaGlobalFunctions::SendMail },
+    { ENV_BOTH, "SendWorldMessage", &LuaGlobalFunctions::SendWorldMessage },
+    { ENV_BOTH, "StateChannelRegister", &LuaGlobalFunctions::StateChannelRegister },
+    { ENV_BOTH, "StateChannelSend", &LuaGlobalFunctions::StateChannelSend },
+    { ENV_BOTH, "StateChannelUnregister", &LuaGlobalFunctions::StateChannelUnregister },
+    { ENV_BOTH, "UintNew", &LuaGlobalFunctions::UintNew },
+    { ENV_BOTH, "UintToHex", &LuaGlobalFunctions::UintToHex },
+    { ENV_BOTH, "UintToString", &LuaGlobalFunctions::UintToString },
+    { ENV_BOTH, "WorldDBExecute", &LuaGlobalFunctions::WorldDBExecute },
+    { ENV_BOTH, "WorldDBQuery", &LuaGlobalFunctions::WorldDBQuery },
+    { ENV_NONE, "Ban", &LuaGlobalFunctions::Ban },
+    { ENV_NONE, "Kick", &LuaGlobalFunctions::Kick },
+    { ENV_NONE, "PerformIngameSpawn", &LuaGlobalFunctions::PerformIngameSpawn },
+    { ENV_WORLD, "AddVendorItem", &LuaGlobalFunctions::AddVendorItem },
+    { ENV_WORLD, "GetGuildByLeaderGUID", &LuaGlobalFunctions::GetGuildByLeaderGUID },
+    { ENV_WORLD, "GetGuildByName", &LuaGlobalFunctions::GetGuildByName },
+    { ENV_WORLD, "GetMapById", &LuaGlobalFunctions::GetMapById },
+    { ENV_WORLD, "GetPlayerByGUID", &LuaGlobalFunctions::GetPlayerByGUID },
+    { ENV_WORLD, "GetPlayerByName", &LuaGlobalFunctions::GetPlayerByName },
+    { ENV_WORLD, "GetPlayerCount", &LuaGlobalFunctions::GetPlayerCount },
+    { ENV_WORLD, "GetPlayersInWorld", &LuaGlobalFunctions::GetPlayersInWorld },
+    { ENV_WORLD, "VendorRemoveAllItems", &LuaGlobalFunctions::VendorRemoveAllItems },
+    { ENV_WORLD, "VendorRemoveItem", &LuaGlobalFunctions::VendorRemoveItem },
+
+    { ENV_NONE, nullptr, nullptr },
+};
+
+void RegisterTypeGlobal(Eluna* E)
+{
+    ElunaFunction::SetGlobalFunctions(E, GlobalMethods);
+}

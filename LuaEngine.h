@@ -257,7 +257,7 @@ private:
     }
 
 public:
-    static inline void ASSERT_MAIN_THREAD() { ASSERT(main_thread_id == std::this_thread::get_id()); }
+    static void ASSERT_MAIN_THREAD() { ASSERT(main_thread_id == std::this_thread::get_id()); }
 
     static Eluna* GEluna;
     static MsgQueue msgque;
@@ -268,6 +268,7 @@ public:
     Map* const owner;
     ElunaEnvironments const env;
     lua_State* L;
+    std::unordered_map<std::string, void(*)(Eluna*)> classCreators;
     // State messaging channels and messages
     std::unordered_set<std::string> channels;
     std::vector< std::pair<std::string, std::string> > channelMessages;
@@ -310,13 +311,14 @@ public:
     static void Push(lua_State* luastate, const double);
     static void Push(lua_State* luastate, const std::string&);
     static void Push(lua_State* luastate, const char*);
-    static void Push(lua_State* luastate, Object const* obj);
-    static void Push(lua_State* luastate, WorldObject const* obj);
-    static void Push(lua_State* luastate, Unit const* unit);
-    static void Push(lua_State* luastate, Pet const* pet);
-    static void Push(lua_State* luastate, TempSummon const* summon);
+    static void Push(lua_State* luastate, char*);
+    static void Push(lua_State* luastate, Object* obj);
+    static void Push(lua_State* luastate, WorldObject* obj);
+    static void Push(lua_State* luastate, Unit* unit);
+    static void Push(lua_State* luastate, Pet* pet);
+    static void Push(lua_State* luastate, TempSummon* summon);
     template<typename T>
-    static void Push(lua_State* luastate, T const* ptr)
+    static void Push(lua_State* luastate, T* ptr)
     {
         ElunaTemplate<T>::Push(luastate, ptr);
     }

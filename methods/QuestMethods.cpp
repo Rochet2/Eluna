@@ -4,11 +4,13 @@
 * Please see the included DOCS/LICENSE.md for more information
 */
 
-#ifndef QUESTMETHODS_H
-#define QUESTMETHODS_H
+#include "LuaEngine.h"
+#include "ElunaTemplate.h"
+
+#include "ElunaIncludes.h"
 
 /***
- * Inherits all methods from: none
+ * Inherits all methods from: [ElunaBase]
  */
 namespace LuaQuest
 {
@@ -49,8 +51,9 @@ namespace LuaQuest
      * @param [QuestFlags] flag : all available flags can be seen above
      * @return bool hasFlag
      */
-    int HasFlag(lua_State* L, Quest* quest)
+    int HasFlag(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         uint32 flag = Eluna::CHECKVAL<uint32>(L, 2);
 #ifndef TRINITY
         Eluna::Push(L, quest->HasQuestFlag((QuestFlags)flag));
@@ -66,8 +69,9 @@ namespace LuaQuest
      *
      * @return bool isDaily
      */
-    int IsDaily(lua_State* L, Quest* quest)
+    int IsDaily(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         Eluna::Push(L, quest->IsDaily());
         return 1;
     }
@@ -78,8 +82,9 @@ namespace LuaQuest
      *
      * @return bool isRepeatable
      */
-    int IsRepeatable(lua_State* L, Quest* quest)
+    int IsRepeatable(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         Eluna::Push(L, quest->IsRepeatable());
         return 1;
     }
@@ -89,8 +94,9 @@ namespace LuaQuest
      *
      * @return uint32 entryId
      */
-    int GetId(lua_State* L, Quest* quest)
+    int GetId(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         Eluna::Push(L, quest->GetQuestId());
         return 1;
     }
@@ -100,8 +106,9 @@ namespace LuaQuest
      *
      * @return uint32 level
      */
-    int GetLevel(lua_State* L, Quest* quest)
+    int GetLevel(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         Eluna::Push(L, quest->GetQuestLevel());
         return 1;
     }
@@ -111,8 +118,9 @@ namespace LuaQuest
      *
      * @return uint32 minLevel
      */
-    int GetMinLevel(lua_State* L, Quest* quest)
+    int GetMinLevel(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         Eluna::Push(L, quest->GetMinLevel());
         return 1;
     }
@@ -122,8 +130,9 @@ namespace LuaQuest
      *
      * @return int32 entryId
      */
-    int GetNextQuestId(lua_State* L, Quest* quest)
+    int GetNextQuestId(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         Eluna::Push(L, quest->GetNextQuestId());
         return 1;
     }
@@ -133,8 +142,9 @@ namespace LuaQuest
      *
      * @return int32 entryId
      */
-    int GetPrevQuestId(lua_State* L, Quest* quest)
+    int GetPrevQuestId(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         Eluna::Push(L, quest->GetPrevQuestId());
         return 1;
     }
@@ -144,8 +154,9 @@ namespace LuaQuest
      *
      * @return int32 entryId
      */
-    int GetNextQuestInChain(lua_State* L, Quest* quest)
+    int GetNextQuestInChain(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         Eluna::Push(L, quest->GetNextQuestInChain());
         return 1;
     }
@@ -155,8 +166,9 @@ namespace LuaQuest
      *
      * @return [QuestFlags] flags
      */
-    int GetFlags(lua_State* L, Quest* quest)
+    int GetFlags(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, quest->GetQuestFlags());
 #else
@@ -172,16 +184,36 @@ namespace LuaQuest
      *
      * @return uint32 type
      */
-    int GetType(lua_State* L, Quest* quest)
+    int GetType(lua_State* L)
     {
+        Quest* quest = Eluna::CHECKOBJ<Quest>(L, 1);
         Eluna::Push(L, quest->GetType());
         return 1;
     }
-
-    /*int GetMaxLevel(lua_State* L, Quest* quest)
-    {
-        Eluna::Push(L, quest->GetMaxLevel());
-        return 1;
-    }*/
 };
+
+ElunaFunction QuestMethods[] =
+{
+    { ENV_BOTH, "GetId", &LuaQuest::GetId },
+    { ENV_BOTH, "GetLevel", &LuaQuest::GetLevel },
+    { ENV_BOTH, "GetMinLevel", &LuaQuest::GetMinLevel },
+    { ENV_BOTH, "GetNextQuestId", &LuaQuest::GetNextQuestId },
+    { ENV_BOTH, "GetPrevQuestId", &LuaQuest::GetPrevQuestId },
+    { ENV_BOTH, "GetNextQuestInChain", &LuaQuest::GetNextQuestInChain },
+    { ENV_BOTH, "GetFlags", &LuaQuest::GetFlags },
+    { ENV_BOTH, "GetType", &LuaQuest::GetType },
+    { ENV_BOTH, "HasFlag", &LuaQuest::HasFlag },
+    { ENV_BOTH, "IsRepeatable", &LuaQuest::IsRepeatable },
+#ifndef CLASSIC
+    { ENV_BOTH, "IsDaily", &LuaQuest::IsDaily },
 #endif
+
+    { ENV_NONE, nullptr, nullptr },
+};
+
+ELUNA_TYPE(Quest, true, QuestMethods, "ElunaBase")
+
+void RegisterTypeQuest(Eluna* E)
+{
+    ElunaTemplate<Quest>::RegisterTypeForState(E);
+}

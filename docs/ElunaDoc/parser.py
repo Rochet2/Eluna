@@ -58,7 +58,7 @@ class ParameterDoc(object):
             self.data_type = '[' + self.data_type + ']'
 
         elif not self.data_type in ['nil', 'boolean', 'number', 'string', 'table', 'function', '...'] and self.data_type[:1] != '[':
-            print "Missing [] from data type `" + self.data_type + "`"
+            print "Missing [] from data type `" + self.data_type + "`, variable name `" + self.name + "`"
 
 
 class MethodDoc(object):
@@ -320,7 +320,7 @@ class ClassParser(object):
     def parse_file(file):
         """Parse the file `file` into a documented class."""
         # Get the class name from "ClassMethods.h" by stripping off "Methods.h".
-        class_name = file.name[:-len('Methods.h')]
+        class_name = file.name[:file.name.find("Methods")-len(file.name)]
         parser = ClassParser(class_name)
 
         line = file.readline()

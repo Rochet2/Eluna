@@ -4,13 +4,15 @@
 * Please see the included DOCS/LICENSE.md for more information
 */
 
-#ifndef MAPMETHODS_H
-#define MAPMETHODS_H
+#include "LuaEngine.h"
+#include "ElunaTemplate.h"
+
+#include "ElunaIncludes.h"
 
 /***
  * A game map, e.g. Azeroth, Eastern Kingdoms, the Molten Core, etc.
  *
- * Inherits all methods from: none
+ * Inherits all methods from: [ElunaBase]
  */
 namespace LuaMap
 {
@@ -21,8 +23,9 @@ namespace LuaMap
      *
      * @return bool isArena
      */
-    int IsArena(lua_State* L, Map* map)
+    int IsArena(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         Eluna::Push(L, map->IsBattleArena());
         return 1;
     }
@@ -33,8 +36,9 @@ namespace LuaMap
      *
      * @return bool isBattleGround
      */
-    int IsBattleground(lua_State* L, Map* map)
+    int IsBattleground(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
 #ifndef TRINITY
         Eluna::Push(L, map->IsBattleGround());
 #else
@@ -48,8 +52,9 @@ namespace LuaMap
      *
      * @return bool isDungeon
      */
-    int IsDungeon(lua_State* L, Map* map)
+    int IsDungeon(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         Eluna::Push(L, map->IsDungeon());
         return 1;
     }
@@ -59,8 +64,9 @@ namespace LuaMap
      *
      * @return bool isEmpty
      */
-    int IsEmpty(lua_State* L, Map* map)
+    int IsEmpty(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         Eluna::Push(L, map->isEmpty());
         return 1;
     }
@@ -71,8 +77,9 @@ namespace LuaMap
      *
      * @return bool isHeroic
      */
-    int IsHeroic(lua_State* L, Map* map)
+    int IsHeroic(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         Eluna::Push(L, map->IsHeroic());
         return 1;
     }
@@ -83,8 +90,9 @@ namespace LuaMap
      *
      * @return bool isRaid
      */
-    int IsRaid(lua_State* L, Map* map)
+    int IsRaid(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         Eluna::Push(L, map->IsRaid());
         return 1;
     }
@@ -94,8 +102,9 @@ namespace LuaMap
      *
      * @return string mapName
      */
-    int GetName(lua_State* L, Map* map)
+    int GetName(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         Eluna::Push(L, map->GetMapName());
         return 1;
     }
@@ -109,8 +118,9 @@ namespace LuaMap
      * @param float y
      * @return float z
      */
-    int GetHeight(lua_State* L, Map* map)
+    int GetHeight(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         float x = Eluna::CHECKVAL<float>(L, 2);
         float y = Eluna::CHECKVAL<float>(L, 3);
 #if (defined(TBC) || defined(CLASSIC))
@@ -131,8 +141,9 @@ namespace LuaMap
      *
      * @return int32 difficulty
      */
-    int GetDifficulty(lua_State* L, Map* map)
+    int GetDifficulty(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
 #ifndef CLASSIC
         Eluna::Push(L, map->GetDifficulty());
 #else
@@ -146,8 +157,9 @@ namespace LuaMap
      *
      * @return uint32 instanceId
      */
-    int GetInstanceId(lua_State* L, Map* map)
+    int GetInstanceId(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         Eluna::Push(L, map->GetInstanceId());
         return 1;
     }
@@ -157,8 +169,9 @@ namespace LuaMap
      *
      * @return uint32 playerCount
      */
-    int GetPlayerCount(lua_State* L, Map* map)
+    int GetPlayerCount(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         Eluna::Push(L, map->GetPlayersCountExceptGMs());
         return 1;
     }
@@ -168,8 +181,9 @@ namespace LuaMap
      *
      * @return uint32 mapId
      */
-    int GetMapId(lua_State* L, Map* map)
+    int GetMapId(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         Eluna::Push(L, map->GetId());
         return 1;
     }
@@ -182,8 +196,9 @@ namespace LuaMap
      * @param float z
      * @return uint32 areaId
      */
-    int GetAreaId(lua_State* L, Map* map)
+    int GetAreaId(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         float x = Eluna::CHECKVAL<float>(L, 2);
         float y = Eluna::CHECKVAL<float>(L, 3);
         float z = Eluna::CHECKVAL<float>(L, 4);
@@ -201,8 +216,9 @@ namespace LuaMap
      *
      * @param uint64 guid
      */
-    int GetWorldObject(lua_State* L, Map* map)
+    int GetWorldObject(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         uint64 guid = Eluna::CHECKVAL<uint64>(L, 2);
 
 #ifndef TRINITY
@@ -255,8 +271,9 @@ namespace LuaMap
      * @param [WeatherType] type : the [WeatherType], see above available weather types
      * @param float grade : the intensity/grade of the [Weather], ranges from 0 to 1
      */
-    int SetWeather(lua_State* L, Map* map)
+    int SetWeather(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         uint32 zoneId = Eluna::CHECKVAL<uint32>(L, 2);
         uint32 weatherType = Eluna::CHECKVAL<uint32>(L, 3);
         float grade = Eluna::CHECKVAL<float>(L, 4);
@@ -287,8 +304,9 @@ namespace LuaMap
      * @param [TeamId] team = TEAM_NEUTRAL : optional check team of the player. Neutral means either team
      * @return table players
      */
-    int GetPlayers(lua_State* L, Map* map)
+    int GetPlayers(lua_State* L)
     {
+        Map* map = Eluna::CHECKOBJ<Map>(L, 1);
         uint32 team = Eluna::CHECKVAL<uint32>(L, 2, TEAM_NEUTRAL);
 
         Map::PlayerList const& players = map->GetPlayers();
@@ -316,4 +334,34 @@ namespace LuaMap
         return 1;
     }
 };
-#endif
+
+ElunaFunction MapMethods[] =
+{
+    { ENV_BOTH, "GetAreaId", &LuaMap::GetAreaId },
+    { ENV_BOTH, "GetDifficulty", &LuaMap::GetDifficulty },
+    { ENV_BOTH, "GetHeight", &LuaMap::GetHeight },
+    { ENV_BOTH, "GetInstanceId", &LuaMap::GetInstanceId },
+    { ENV_BOTH, "GetMapId", &LuaMap::GetMapId },
+    { ENV_BOTH, "GetName", &LuaMap::GetName },
+    { ENV_BOTH, "GetPlayerCount", &LuaMap::GetPlayerCount },
+    { ENV_BOTH, "GetPlayers", &LuaMap::GetPlayers },
+    { ENV_BOTH, "GetWorldObject", &LuaMap::GetWorldObject },
+    { ENV_BOTH, "IsBattleground", &LuaMap::IsBattleground },
+    { ENV_BOTH, "IsDungeon", &LuaMap::IsDungeon },
+    { ENV_BOTH, "IsEmpty", &LuaMap::IsEmpty },
+    { ENV_BOTH, "IsRaid", &LuaMap::IsRaid },
+    { ENV_BOTH, "SetWeather", &LuaMap::SetWeather },
+#ifndef CLASSIC
+    { ENV_BOTH, "IsArena", &LuaMap::IsArena },
+    { ENV_BOTH, "IsHeroic", &LuaMap::IsHeroic },
+#endif                    
+
+    { ENV_NONE, nullptr, nullptr },
+};
+
+ELUNA_TYPE(Map, false, MapMethods, "ElunaBase")
+
+void RegisterTypeMap(Eluna* E)
+{
+    ElunaTemplate<Map>::RegisterTypeForState(E);
+}
