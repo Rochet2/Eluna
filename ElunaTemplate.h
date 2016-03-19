@@ -150,6 +150,9 @@ public:
         ASSERT(E && E->L);
         lua_State* L = E->L;
 
+        // Make sure that the class is actually registered
+        ASSERT(E->classCreators.find(tname) != E->classCreators.end());
+
         // check that metatable isn't already there
         lua_pushstring(L, tname);
         lua_rawget(L, LUA_REGISTRYINDEX);
