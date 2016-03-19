@@ -115,7 +115,7 @@ template<typename T>
 class ElunaTemplate
 {
 public:
-    static const char* const tname;
+    static const char* const type_name;
     static const bool manageMemory;
     static ElunaFunction* const methods;
     static const std::string inherited;
@@ -130,9 +130,9 @@ public:
     static void RegisterTypeForState(Eluna* E)
     {
         ASSERT(E);
-        ASSERT(tname);
-        ASSERT(E->classCreators.find(tname) == E->classCreators.end());
-        E->classCreators[tname] = CreateMetatable;
+        ASSERT(type_name);
+        ASSERT(E->classCreators.find(type_name) == E->classCreators.end());
+        E->classCreators[type_name] = CreateMetatable;
         // Do not yet call CreateMetatable.
         // All types must be registered before
         // doing that due to inheritance.
@@ -151,10 +151,10 @@ public:
         lua_State* L = E->L;
 
         // Make sure that the class is actually registered
-        ASSERT(E->classCreators.find(tname) != E->classCreators.end());
+        ASSERT(E->classCreators.find(type_name) != E->classCreators.end());
 
         // check that metatable isn't already there
-        lua_pushstring(L, tname);
+        lua_pushstring(L, type_name);
         lua_rawget(L, LUA_REGISTRYINDEX);
         bool exists = !lua_isnoneornil(L, -1);
         lua_pop(L, 1);
@@ -166,7 +166,7 @@ public:
         int methodtable = lua_gettop(L);
 
         // create metatable for userdata of this type
-        luaL_newmetatable(L, tname);
+        luaL_newmetatable(L, type_name);
         int metatable = lua_gettop(L);
 
         // garbage collecting
@@ -229,12 +229,12 @@ public:
             else
             {
                 lua_pop(L, 1);
-                ELUNA_LOG_ERROR("%s cannot inherit %s, could not create/find metatable", tname, inherited.c_str());
+                ELUNA_LOG_ERROR("%s cannot inherit %s, could not create/find metatable", type_name, inherited.c_str());
             }
         }
         else if (!inherited.empty())
         {
-            ELUNA_LOG_ERROR("%s cannot inherit %s, no metatable creator for inherited", tname, inherited.c_str());
+            ELUNA_LOG_ERROR("%s cannot inherit %s, no metatable creator for inherited", type_name, inherited.c_str());
         }
 
         // pop methodtable and metatable
@@ -270,7 +270,7 @@ public:
         ASSERT(lua_istable(L, -1));
         lua_pushlightuserdata(L, obj_voidptr);
         lua_rawget(L, -2);
-        if (ElunaObject* elunaObj = Eluna::CHECKTYPE(L, -1, tname, false))
+        if (ElunaObject* elunaObj = Eluna::CHECKTYPE(L, -1, type_name, false))
         {
             // set userdata valid
             elunaObj->SetValid(true);
@@ -286,7 +286,7 @@ public:
         ElunaObject** ptrHold = static_cast<ElunaObject**>(lua_newuserdata(L, sizeof(ElunaObject*)));
         if (!ptrHold)
         {
-            ELUNA_LOG_ERROR("%s could not create new userdata", tname);
+            ELUNA_LOG_ERROR("%s could not create new userdata", type_name);
             lua_pop(L, 2);
             lua_pushnil(L);
             return 1;
@@ -294,19 +294,19 @@ public:
         *ptrHold = new ElunaObject(obj, managememory);
 
         // Set metatable for it
-        lua_pushstring(L, tname);
+        lua_pushstring(L, type_name);
         lua_rawget(L, LUA_REGISTRYINDEX);
         if (!lua_istable(L, -1))
         {
             lua_pop(L, 1);
-            ELUNA_LOG_DEBUG("%s missing metatable, attempt creating it", tname);
+            ELUNA_LOG_DEBUG("%s missing metatable, attempt creating it", type_name);
             CreateMetatable(Eluna::GetEluna(L));
 
-            lua_pushstring(L, tname);
+            lua_pushstring(L, type_name);
             lua_rawget(L, LUA_REGISTRYINDEX);
             if (!lua_istable(L, -1))
             {
-                ELUNA_LOG_ERROR("%s missing metatable and creation attempt failed, possibly forgot to register the type", tname);
+                ELUNA_LOG_ERROR("%s missing metatable and creation attempt failed, possibly forgot to register the type", type_name);
                 lua_pop(L, 3);
                 lua_pushnil(L);
                 ASSERT(false);
@@ -329,16 +329,16 @@ public:
      */
     static T* Check(lua_State* L, int narg, bool error = true)
     {
-        ASSERT(tname);
+        ASSERT(type_name);
 
-        ElunaObject* elunaObj = Eluna::CHECKTYPE(L, narg, tname, error);
+        ElunaObject* elunaObj = Eluna::CHECKTYPE(L, narg, type_name, error);
         if (!elunaObj)
             return NULL;
 
         if (!elunaObj->IsValid())
         {
             char buff[256];
-            snprintf(buff, 256, "%s expected, got pointer to nonexisting (invalidated) object (%s). Check your code.", tname, luaL_typename(L, narg));
+            snprintf(buff, 256, "%s expected, got pointer to nonexisting (invalidated) object (%s). Check your code.", type_name, luaL_typename(L, narg));
             if (error)
             {
                 luaL_argerror(L, narg, buff);
@@ -407,7 +407,7 @@ public:
 };
 
 template<typename T>
-ElunaObject::ElunaObject(T* obj, bool manageMemory) : isvalid(false), managememory(manageMemory), object(obj), type_name_ptr(ElunaTemplate<T>::tname)
+ElunaObject::ElunaObject(T* obj, bool manageMemory) : isvalid(false), managememory(manageMemory), object(obj), type_name_ptr(ElunaTemplate<T>::type_name)
 {
     ASSERT(type_name_ptr);
     SetValid(true);
@@ -439,7 +439,7 @@ template<> int ElunaTemplate<Vehicle>::__gc(lua_State* L)
  * It is assumed that if nothing is inherited, INHERITED is set to "ElunaBase" to inherit the base methods.
  */
 #define ELUNA_TYPE(TYPE, MANAGE_MEMORY, METHODS, INHERITED) \
-template<> const char* const ElunaTemplate<TYPE>::tname = #TYPE; \
+template<> const char* const ElunaTemplate<TYPE>::type_name = #TYPE; \
 template<> const bool ElunaTemplate<TYPE>::manageMemory = MANAGE_MEMORY; \
 template<> ElunaFunction* const ElunaTemplate<TYPE>::methods = METHODS; \
 template<> const std::string ElunaTemplate<TYPE>::inherited = INHERITED; \
