@@ -8,9 +8,10 @@
 #define _BINDING_MAP_H
 
 #include <memory>
-#include "Common.h"
-#include "ObjectGuid.h"
 #include <type_traits>
+#include "ObjectGuid.h"
+#include "Common.h"
+#include "Hooks.h"
 #include "LuaEngine.h"
 
 extern "C"
@@ -21,6 +22,7 @@ extern "C"
 };
 
 struct lua_State;
+typedef uint64 BindGuid;
 
 /*
 * A set of bindings from keys of type `K` to Lua references.
@@ -28,8 +30,6 @@ struct lua_State;
 template<typename K>
 class BindingMap
 {
-public:
-    typedef uint64 BindGuid;
 private:
     lua_State* L;
     BindGuid maxBindingID;
@@ -69,13 +69,7 @@ private:
     */
     std::unordered_map<BindGuid, BindingList*> id_lookup_table;
 
-    static int cancelBinding(lua_State *L)
-    {
-        BindGuid bindid = Eluna::CHECKVAL<BindGuid>(L, lua_upvalueindex(1));
-        BindingMap<K>* bindmap = static_cast<BindingMap<K>*>(lua_touserdata(L, lua_upvalueindex(2)));
-        bindmap->Remove(bindid);
-        return 0;
-    }
+    static int cancelBinding(lua_State *L);
 
 public:
     BindingMap(lua_State* L) :
@@ -90,22 +84,7 @@ public:
     * If `shots` is 0, it will never automatically expire, but can still be
     *   removed with `Clear` or `Remove`.
     */
-    BindGuid Insert(const K& key, int ref, uint32 shots)
-    {
-        BindGuid id = (++maxBindingID);
-        ASSERT(id != 0);
-
-        // save as a binding
-        BindingList& list = bindings[key];
-        list.push_back(std::unique_ptr<Binding>(new Binding(L, id, ref, shots)));
-        id_lookup_table[id] = &list;
-
-        // create cancel callback and push it to stack
-        Eluna::Push(L, id);
-        lua_pushlightuserdata(L, this);
-        lua_pushcclosure(L, &cancelBinding, 2);
-        return id;
-    }
+    BindGuid Insert(const K& key, int ref, uint32 shots);
 
     /*
     * Clear all bindings for `key`.
@@ -221,6 +200,41 @@ public:
         }
     }
 };
+
+template<typename K>
+int BindingMap<K>::cancelBinding(lua_State * L)
+{
+    BindGuid bindid = Eluna::CHECKVAL<BindGuid>(L, lua_upvalueindex(1));
+    BindingMap<K>* bindmap = static_cast<BindingMap<K>*>(lua_touserdata(L, lua_upvalueindex(2)));
+    bindmap->Remove(bindid);
+    return 0;
+}
+
+/*
+* Insert a new binding from `key` to `ref`, which lasts for `shots`-many pushes.
+* Pushes a cancel callback function to lua stack.
+*
+* If `shots` is 0, it will never automatically expire, but can still be
+*   removed with `Clear` or `Remove`.
+*/
+template<typename K>
+BindGuid BindingMap<K>::Insert(const K & key, int ref, uint32 shots)
+{
+    BindGuid id = (++maxBindingID);
+    ASSERT(id != 0);
+
+    // save as a binding
+    BindingList& list = bindings[key];
+    list.push_back(std::unique_ptr<Binding>(new Binding(L, id, ref, shots)));
+    id_lookup_table[id] = &list;
+
+    // create cancel callback and push it to stack
+    Eluna::Push(L, id);
+    lua_pushlightuserdata(L, this);
+    lua_pushcclosure(L, &cancelBinding, 2);
+    return id;
+}
+
 
 /*
 * A `BindingMap` key type for an event (some global event)
